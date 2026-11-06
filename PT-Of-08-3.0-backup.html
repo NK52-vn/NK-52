@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#393541">
+<title>Bảng tuần hoàn hóa học</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif}
+.page{max-width:1500px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+h1{margin:0 0 5px;font-size:clamp(23px,4vw,36px)}
+.sub,.hint{font-size:13px}
+.tools{display:flex;gap:8px}
+input{min-width:0;padding:12px;border-radius:11px}
+.legend{display:flex;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;font-size:11px}
+.dot{width:9px;height:9px;border-radius:3px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.periodic{display:grid;grid-template-rows:repeat(9,76px);width:max-content}
+.element,.placeholder,.series-label{min-width:0}
+.element{padding:4px 2px;font-family:inherit}
+.element:active{outline:2px solid white}
+.element .number{position:absolute;top:3px;left:4px;font-size:9px;opacity:.85}
+.element .symbol{display:block;margin-top:15px;font-size:21px;font-weight:800;line-height:1}
+.element .name{display:block;margin-top:4px;font-size:8px;line-height:1.05;overflow-wrap:anywhere}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.placeholder small{font-size:9px}
+.series-label{grid-column:1 / span 3;display:flex;align-items:center;padding:7px;font-size:11px;font-weight:bold}
+.foot{margin-top:12px;font-size:12px;line-height:1.5}
+@media (max-width:600px){header{display:block}
+.tools{margin-top:12px}
+}
+.modal{position:fixed;inset:0;z-index:99}
+.modal-card{-webkit-overflow-scrolling:touch}
+.modal-head{display:flex;align-items:center;gap:13px;position:sticky;z-index:2;padding:7px 0 13px}
+.modal-symbol{height:65px;flex:0 0 65px;display:grid;place-items:center;font-size:30px;font-weight:800}
+.modal-title{min-width:0;flex:1}
+.modal-title h2{margin:0 0 4px;font-size:23px}
+.modal-title p{margin:0;font-size:12px}
+.modal-close{border-radius:11px;width:40px;font-size:25px}
+.property-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}
+.property{min-width:0;padding:11px}
+.property .label{display:block;font-size:11px;margin-bottom:6px}
+.property .value{display:block;font-size:14px;line-height:1.4;overflow-wrap:anywhere;font-weight:600}
+.property.wide{grid-column:1/-1}
+.modal-note{font-size:11px;line-height:1.45;margin:13px 2px 2px}
+html{-webkit-text-size-adjust:100%}
+body{padding:clamp(8px,2.5vw,18px)}
+.tools{width:min(100%,560px)}
+input,button{min-height:44px}
+.table-wrap{overscroll-behavior-x:contain;scrollbar-width:thin}
+.periodic{grid-template-columns:repeat(18,minmax(43px,48px))}
+.element{touch-action:manipulation}
+.element:focus-visible,.modal-close:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.modal-card{padding:clamp(12px,3vw,20px)}
+.modal-head{top:-13px}
+.atom-panel{margin-top:12px;padding:14px}
+.atom-panel h3{margin:0 0 4px;font-size:16px}
+.atom-caption{margin:0 0 8px;font-size:12px}
+.atom-layout{display:grid;gap:12px;align-items:center}
+.shell-list{display:flex;flex-wrap:wrap;gap:6px}
+.shell-chip{padding:7px 9px;font-size:12px}
+@media (max-width:600px){body{padding:9px 8px}
+.sub,.hint{font-size:12px;line-height:1.5}
+.tools{gap:6px}
+input{padding:10px}
+.legend span{font-size:10px;padding:6px}
+.periodic{grid-template-columns:repeat(18,44px);grid-template-rows:repeat(9,68px)}
+.element .symbol{font-size:19px;margin-top:14px}
+.element .name{font-size:7px}
+.element .number{font-size:8px}
+.modal-card{padding:11px}
+.modal-head{top:-11px;gap:9px;padding:7px 0 10px}
+.modal-symbol{height:52px;flex-basis:52px;font-size:25px}
+.modal-title h2{font-size:18px}
+.property-grid{gap:6px}
+.property{padding:8px}
+.property .label{font-size:10px}
+.property .value{font-size:12px}
+.atom-panel{padding:10px}
+.atom-layout{gap:7px}
+.shell-chip{font-size:11px;padding:6px 7px}
+}
+.atom-layout{grid-template-columns:minmax(220px,280px) 1fr}
+.atom3d-scene{aspect-ratio:1/1;position:relative;overflow:hidden;touch-action:none;-webkit-user-select:none;cursor:grab}
+.atom3d-scene:active{cursor:grabbing}
+.atom3d-canvas{display:block;width:100%}
+.atom3d-hint{text-align:center;font-size:11px;margin:-1px 0 8px}
+@media (max-width:600px){.atom-layout{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.atom3d-canvas{animation:none}
+}
+html{scroll-behavior:smooth}
+body{min-height:100vh}
+.page{position:relative;isolation:isolate}
+header{padding:clamp(14px,2.2vw,22px);margin-bottom:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+h1{letter-spacing:-.7px}
+.tools input{transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.tools input:focus{outline:none;border-color:rgba(32,64,112,0.9);background:rgba(223,237,240,0.92);box-shadow:0 0 0 3px rgba(14,54,82,0.056),0 0 24px rgba(14,54,82,0.048)}
+button.reset{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+button.reset:hover{transform:translateY(-2px);filter:brightness(1.14);box-shadow:0 9px 20px rgba(14,54,82,0.12)}
+.legend{gap:8px;margin:14px 2px}
+.dot{box-shadow:0 0 10px currentColor,0 0 3px rgba(14,54,82,0.14)}
+.table-wrap{perspective:1400px;backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}
+.periodic{transform-style:preserve-3d}
+.element{isolation:isolate;transform:translateZ(0);transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease,filter .2s ease;-webkit-tap-highlight-color:transparent}
+.element::before{z-index:0;opacity:.8}
+.element::after{z-index:0;top:0;filter:blur(.5px);opacity:.75;pointer-events:none}
+.element>span{position:relative;z-index:1}
+.element:hover{z-index:4;filter:saturate(1.13) brightness(1.09);transform:translateY(-5px) rotateX(7deg) rotateY(-3deg) scale(1.055) translateZ(12px);box-shadow:0 9px 0 rgba(14,54,82,0.108),0 17px 23px rgba(14,54,82,0.136),0 0 20px rgba(14,54,82,0.072),inset 0 1px 0 rgba(14,54,82,0.312),inset 0 -9px 13px rgba(14,54,82,0.024)}
+.element:active{transform:translateY(-1px) scale(.97);filter:brightness(1.12);outline:2px solid rgba(255,255,255,.9);outline-offset:1px}
+.element.selected{z-index:3;transform:translateY(-3px) translateZ(8px)}
+.element .number{font-weight:700}
+.placeholder{box-shadow:inset 0 1px 0 rgba(14,54,82,0.04),0 6px 13px rgba(14,54,82,0.068)}
+.series-label{box-shadow:0 5px 12px rgba(14,54,82,0.072),inset 0 1px 0 rgba(14,54,82,0.028)}
+.foot{padding:5px 3px 12px}
+.modal{-webkit-backdrop-filter:blur(11px)}
+.modal-close{box-shadow:0 5px 13px rgba(14,54,82,0.088),inset 0 1px 0 rgba(14,54,82,0.04);transition:transform .18s ease,background .18s ease}
+.modal-close:hover{transform:rotate(90deg);background:#94afb5}
+.shell-chip{box-shadow:0 4px 10px rgba(14,54,82,0.072),inset 0 1px 0 rgba(14,54,82,0.032)}
+.property{transition:transform .18s ease,border-color .18s ease}
+.property:hover{transform:translateY(-2px);border-color:rgba(28,56,98,0.45)}
+@media (hover: hover) and (pointer: fine){.element{cursor:pointer}
+}
+@media (max-width: 600px){.element:hover{transform:translateY(-2px) scale(1.025)}
+.element.selected{transform:translateY(-2px)}
+}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}
+*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+header{position:relative;overflow:hidden;border-radius:23px}
+header::after{content:"天 · 地 · 元 · 素";position:absolute;top:15px;right:20px;color:rgba(65,82,107,0.55);font-size:11px;letter-spacing:5px}
+h1{background:linear-gradient(90deg,#17212e 0%,#364253 48%,#3d516f 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tools input::placeholder{color:#727f81}
+.tools input:focus{outline:none;border-color:#3b495e;box-shadow:0 0 0 3px rgba(14,54,82,0.048),0 0 18px rgba(14,54,82,0.04)}
+button.reset:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.legend span{border-radius:999px}
+.table-wrap{position:relative;padding:16px 13px 18px;border:1px solid rgba(67,78,94,0.25);border-radius:22px}
+.periodic{gap:5px}
+.element{position:relative;overflow:hidden;color:#eff7e8;border:1px solid rgba(221,236,206,.25);border-radius:10px;box-shadow:0 4px 0 rgba(14,54,82,0.1),0 8px 14px rgba(14,54,82,0.08),inset 0 1px 0 rgba(14,54,82,0.144),inset 0 -9px 15px rgba(14,54,82,0.06);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.element::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.32),transparent 48%,rgba(4,18,15,.17))}
+.element::after{content:"";position:absolute;left:17%;right:17%;bottom:0;height:2px;border-radius:99px;background:rgba(250,241,205,.75);box-shadow:0 0 7px rgba(14,54,82,0.16)}
+.element .number{color:rgba(26,48,36,.82);text-shadow:0 1px rgba(14,54,82,0.096)}
+.element .symbol{color:#193b2e;text-shadow:0 1px 0 rgba(14,54,82,0.128)}
+.element .name{color:rgba(24,48,37,.9);font-weight:750}
+.element:hover{z-index:5;filter:brightness(1.1) saturate(1.08);transform:translateY(-4px) scale(1.045);box-shadow:0 5px 0 rgba(14,54,82,0.1),0 13px 21px rgba(14,54,82,0.112),0 0 15px rgba(14,54,82,0.064),inset 0 1px 0 rgba(14,54,82,0.18)}
+.element.selected{outline:2px solid #d8c48e;outline-offset:2px;box-shadow:0 0 0 4px rgba(14,54,82,0.04),0 0 20px rgba(14,54,82,0.1),0 10px 20px rgba(14,54,82,0.12)}
+.placeholder{border:1px dashed rgba(67,78,93,0.32);border-radius:10px}
+.series-label{border:1px solid rgba(67,78,94,0.2);border-radius:9px;letter-spacing:1px}
+.modal{-webkit-backdrop-filter:blur(10px)}
+.modal-card{border:1px solid rgba(60,71,88,0.28)}
+.modal-head{border-bottom:1px solid rgba(60,71,88,0.17)}
+.modal-symbol{background:linear-gradient(145deg,#d9e7b8,#a1c99a 60%,#d8c18a)}
+.modal-close:hover{background:rgba(77,101,106,0.2)}
+.atom-panel{border:1px solid rgba(65,77,94,0.2);border-radius:16px;box-shadow:inset 0 1px 0 rgba(14,54,82,0.024),0 7px 16px rgba(14,54,82,0.06)}
+.atom-panel h3{color:#344053}
+.atom-caption,.atom3d-hint{color:#586568}
+.atom3d-scene{border:1px solid rgba(166,208,157,.24);border-radius:16px;box-shadow:inset 0 0 30px rgba(14,54,82,0.036),0 7px 16px rgba(14,54,82,0.088)}
+.shell-chip{border:1px solid rgba(64,76,95,0.2);border-radius:10px}
+.property{border:1px solid rgba(65,77,94,0.18);border-radius:13px;box-shadow:0 4px 11px rgba(14,54,82,0.064)}
+.property:hover{transform:translateY(-2px);border-color:rgba(67,84,110,0.48)}
+@media (hover: hover) and (pointer: fine){.element:hover{transform:translateY(-4px) scale(1.045)}
+}
+@media (max-width: 600px){header{padding:17px 15px}
+header::after{right:12px;top:10px;font-size:9px;letter-spacing:2px}
+.table-wrap{border-radius:17px;padding:9px 7px 12px}
+.element:hover{transform:none}
+}
+@media (prefers-reduced-motion: reduce){.element,.property{transition:none}
+.element:hover,.property:hover{transform:none}
+}
+.modal{display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .8s ease,visibility 0s linear .8s}
+.modal.open,.modal.show,.modal.active,.modal[aria-hidden="false"]{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 1.2s ease,visibility 0s linear 0s}
+.modal-card{max-height:min(90vh,900px);overflow-y:auto;border-radius:24px 24px 0 0;transform:translate3d(0,105%,0);opacity:.88;transition:transform .8s cubic-bezier(.22,.75,.18,1),opacity .8s ease;will-change:transform}
+.modal.open .modal-card,.modal.show .modal-card,.modal.active .modal-card,.modal[aria-hidden="false"] .modal-card{transform:translate3d(0,0,0);opacity:1;transition:transform 1.2s cubic-bezier(.22,.75,.18,1),opacity 1.2s ease}
+.modal-card::before{content:"";display:block;width:42px;height:4px;margin:10px auto 7px;border-radius:99px;background:rgba(51,59,71,0.55)}
+@media (min-width: 760px){.modal{align-items:center;padding:20px}
+.modal-card{width:min(92vw,900px);max-height:88vh;border-radius:22px;transform:translate3d(0,34px,0) scale(.985)}
+}
+@media (prefers-reduced-motion: reduce){.modal,.modal-card{transition:none!important}
+.modal-card{transform:none!important}
+}
+.modal-symbol{position:relative;overflow:hidden;isolation:isolate;border:1px solid rgba(255,255,255,.4);border-top-color:rgba(255,255,255,.8);border-bottom-color:rgba(0,0,0,.3);border-radius:16px;color:#14281d;text-shadow:0 1px 0 rgba(14,54,82,0.24),0 -1px 0 rgba(14,54,82,0.064),0 3px 5px rgba(14,54,82,0.12);margin-bottom:6px}
+.modal-symbol::before{content:"";position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:12px;border:1px solid rgba(255,255,255,.24);border-bottom-color:rgba(0,0,0,.18);border-right-color:rgba(0,0,0,.12);background:radial-gradient(120% 80% at 18% 8%,rgba(255,255,255,.38),transparent 55%),linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,0) 45%,rgba(0,0,0,.18));box-shadow:inset 0 1px 3px rgba(14,54,82,0.08),inset 0 -1px 0 rgba(14,54,82,0.072)}
+.modal-symbol::after{content:"";position:absolute;left:0;right:0;top:0;height:46%;z-index:-1;pointer-events:none;border-radius:16px 16px 55% 55% / 16px 16px 20px 20px;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.04));opacity:.55}
+@media (max-width: 480px){.modal-symbol{border-radius:13px}
+.modal-symbol::before{inset:3px;border-radius:10px}
+.modal-symbol::after{border-radius:13px 13px 55% 55% / 13px 13px 16px 16px}
+}
+:root{--acc:#0b7fa6}
+.element.selected{outline-color:var(--acc)}
+.element:focus-visible,.modal-close:focus-visible{outline-color:var(--acc)}
+.tbtn{flex:1;padding:0 16px;border:1px solid var(--acc);border-radius:11px;font-size:15px;font-weight:700;text-align:left;cursor:pointer}
+.atom3d-wrap{position:relative;width:min(100%,320px);margin:3px auto 8px}
+.atom-zoom{position:absolute;gap:5px}
+.atom-zoom button{padding:0;border:1px solid var(--ln);background:#0f2438d9;color:#f3eeff;font-size:18px;line-height:1;cursor:pointer}
+.atom-zoom button:hover,.atom-zoom button:focus-visible{border-color:var(--acc);outline:none}
+.sp{position:fixed;inset:0;z-index:80;display:none;flex-direction:column}
+.sp.open{display:flex}
+.sp-top{display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--ln)}
+.sp-top input{flex:1;font-size:17px}
+.sp-back{border:1px solid var(--ln);border-radius:11px;background:#fff;color:#134056;width:48px;font-size:20px;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;scrollbar-width:none}
+.chips button{flex:none;min-height:36px;padding:0 12px;border:1px solid var(--ln);border-radius:18px;font-size:13px;cursor:pointer}
+.chips button.on{font-weight:700}
+.sp-count{padding:0 14px 6px;font-size:12px}
+.sp-list{flex:1;overflow-y:auto;padding:0 12px 20px;display:grid;gap:6px;align-content:start;max-width:760px;width:100%;margin:0 auto}
+.srow{display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 12px;border:1px solid var(--ln);border-radius:12px;text-align:left;font-family:inherit;cursor:pointer}
+.srow:hover,.srow:focus-visible{border-color:var(--acc);outline:none}
+.stile{flex:0 0 42px;height:42px;display:grid;place-items:center;border-radius:10px;color:#101827;font-weight:800;font-style:normal;font-size:17px}
+.srow span{flex:1;min-width:0}
+.srow b{display:block;font-size:15px}
+.srow small,.srow em{font-size:12px;font-style:normal}
+.sp-empty{padding:30px 10px;text-align:center;line-height:1.5}
+body.lock{overflow:hidden}
+.element.long .name{font-size:6.2px;letter-spacing:-.2px}
+html,body{color-scheme:light;overscroll-behavior-y:none}
+.modal,.modal-card,.sp-list{overscroll-behavior:contain}
+.infopanel{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:14px}
+.gp-t b{display:block;font-size:15px;line-height:1.2}
+.gp-t small{display:block;font-size:11px;line-height:1.25}
+.gp-btn{border:1px solid var(--acc);border-radius:9px;font-weight:700;cursor:pointer;white-space:nowrap}
+.gp-body{flex-direction:column;gap:6px}
+.infopanel.has .gp-empty{display:none}
+.gp-grid{flex:1;overscroll-behavior:contain}
+.gp-grid .value{font-weight:700}
+.gp-empty{margin:auto;text-align:center;font-size:12px;line-height:1.5}
+.gp-empty b{display:block;font-size:14px;margin-bottom:2px}
+@media (max-width:600px){.infopanel{padding:6px 8px}
+.gp-head .stile{font-size:15px}
+.gp-t b{font-size:13px}
+}
+.sp-top input:focus{outline:2px solid var(--acc)!important;outline-offset:0}
+:root{--ln:#8eb7c5;--acc:#167c9a}
+.infopanel{z-index:4!important}
+.gp-body{display:none;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.infopanel.has .gp-body{display:flex!important}
+.gp-head{z-index:2!important;flex:0 0 auto!important}
+.gp-t{overflow:hidden!important}
+.gp-t b,.gp-t small{overflow-wrap:anywhere!important}
+.atom-mini{transition:transform .08s linear!important;-webkit-user-select:none!important}
+.atom-mini:active{cursor:grabbing!important}
+header{border:1px solid #a99bb9!important}
+.legend span{border:1px solid #a99fb0!important}
+.placeholder,.series-label{background:linear-gradient(145deg,#514b5b,#403b48)!important;color:#e8e1f0!important;border-color:#777083!important}
+.placeholder small{color:#c2b9cd!important}
+.infopanel{border:1px solid #80738f!important}
+.gp-grid .property{box-shadow:none!important}
+.mini-atom-box{gap:4px}
+.mini-atom-visual .atom3d-scene{box-shadow:inset 0 0 22px rgba(0,0,0,.22),0 5px 12px rgba(0,0,0,.18)!important}
+.mini-atom-visual .atom3d-scene:active{cursor:grabbing!important}
+.atom3d-scene:not(.mini-atom3d-scene){background:radial-gradient(circle at 50% 48%,rgba(153,126,190,.28),transparent 53%),linear-gradient(145deg,#211f29,#302b38)!important;border-color:rgba(194,174,221,.35)!important}
+.modal{backdrop-filter:blur(10px)!important}
+.modal-card{box-shadow:0 25px 80px rgba(0,0,0,.48)!important}
+.modal-close{border:1px solid #897d97!important}
+.modal-symbol{box-shadow:0 8px 18px rgba(0,0,0,.26)!important}
+.alkali{background:linear-gradient(145deg,#cda6b2,#aa8795)!important}
+.alkaline{background:linear-gradient(145deg,#d3c19c,#aa9876)!important}
+.transition{background:linear-gradient(145deg,#c5c49a,#92926f)!important}
+.post{background:linear-gradient(145deg,#abc19f,#82957b)!important}
+.metalloid{background:linear-gradient(145deg,#a8c6b6,#7e9e8e)!important}
+.nonmetal{background:linear-gradient(145deg,#a8bfd0,#7e97ab)!important}
+.halogen{background:linear-gradient(145deg,#bdb0d2,#8f82a6)!important}
+.noble{background:linear-gradient(145deg,#d0b0c8,#a988a3)!important}
+.lanthanoid{background:linear-gradient(145deg,#d2b39e,#aa8b78)!important}
+.actinoid{background:linear-gradient(145deg,#cba3ad,#a67c87)!important}
+.unknown{background:linear-gradient(145deg,#b8b3c0,#88838f)!important}
+@media (prefers-reduced-motion:reduce){.mini-atom-visual *{animation:none!important}
+}
+:root{color-scheme:dark}
+html,body{background:#39264f!important;color:#f2eaf9!important}
+body{background:radial-gradient(ellipse at 18% 0%,rgba(133,101,165,.20),transparent 38%),
+    radial-gradient(ellipse at 90% 45%,rgba(91,67,119,.18),transparent 42%),
+    linear-gradient(145deg,#39264f 0%,#422d58 52%,#352345 100%)!important}
+header{background:linear-gradient(145deg,#49345f,#3d2a52)!important;border-color:#806b98!important;box-shadow:0 12px 30px rgba(12,7,18,.24),inset 0 1px rgba(255,255,255,.07)!important}
+.sub,.hint,.foot{color:#d0c2df!important}
+.tools input,.sp-top input{background:#514064!important;color:#fff!important;border:1px solid #806b98!important}
+.tbtn,.gp-btn,.reset{background:linear-gradient(145deg,#604875,#4d3962)!important;border-color:#9a82b5!important;color:#fbf7ff!important}
+.legend span,.chips button,.srow{background:linear-gradient(145deg,#59436d,#49365d)!important;color:#f2eaf9!important;border-color:#806b98!important}
+.legend span{box-shadow:0 4px 12px rgba(10,5,15,.18)!important}
+.table-wrap{background:linear-gradient(145deg,#39264f,#49345f)!important;border-color:#806b98!important;box-shadow:0 18px 42px rgba(12,7,18,.28),inset 0 1px rgba(255,255,255,.07)!important}
+.infopanel{background:linear-gradient(145deg,#49345f,#58416e)!important;border-color:#947eaa!important;color:#f5effa!important;box-shadow:0 8px 23px rgba(12,7,18,.30),inset 0 1px rgba(255,255,255,.08)!important}
+.gp-t b,.modal-title h2{color:#fff8ff!important}
+.gp-t small,.modal-title p,.modal-note{color:#d2c4e0!important}
+.gp-grid .property,.property{background:linear-gradient(145deg,#5a456e,#4c3a60)!important;border-color:#88739e!important}
+.gp-grid .label,.property .label{color:#d6c8e3!important}
+.gp-grid .value,.property .value{color:#fffaff!important}
+.gp-empty{color:#d4c6e2!important}
+.gp-empty b{color:#fff8ff!important}
+.atom3d-scene,.mini-atom-visual .atom3d-scene{background:radial-gradient(circle at 50% 48%,rgba(190,151,225,.28),transparent 54%),
+             linear-gradient(145deg,#30203f,#49345f)!important;border-color:rgba(202,177,225,.48)!important}
+.atom3d-hint,.mini-atom-hint{color:#d2c2e2!important}
+.modal{background:rgba(20,12,29,.78)!important}
+.modal-card{background:linear-gradient(145deg,#402c55,#533c69)!important;border-color:#947eaa!important;color:#f5effa!important}
+.modal-head{background:linear-gradient(90deg,#49345f,#58416e)!important;border-color:#806b98!important}
+.modal-close{background:#604875!important;color:#fff!important;border-color:#9a82b5!important}
+.atom-panel{background:#49345f!important;border-color:#88739e!important}
+.shell-chip{background:#604875!important;color:#fff!important;border-color:#947eaa!important}
+.shell-chip b{color:#e2cfff!important}
+.sp{background:linear-gradient(145deg,#e2d4f0,#c8b4dc)!important}
+.sp-top{background:#e2d4f0!important;border-color:#b9a3d2!important}
+.sp-count,.srow small,.srow em,.sp-empty{color:#e0d4eb!important}
+.chips button.on{background:#80619d!important;color:#fff!important;border-color:#b99bd7!important}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}
+}
+header h1, header h1 *{color:#f3eaff!important;text-shadow:0 1px 8px rgba(220,195,255,.16)!important}
+header .sub, header p{color:#e0d3ed!important}
+header .tools input::placeholder, header input::placeholder{color:#d5c5e3!important}
+.mini-atom-visual .atom-zoom-mini{gap:4px!important}
+.mini-atom-visual .atom-zoom-mini button{background:rgba(42,29,57,.92)!important;border:1px solid rgba(220,199,239,.65)!important;color:#fff!important;touch-action:manipulation!important}
+.atom-zoom{right:8px!important;bottom:8px!important;display:flex!important}
+.atom-zoom button[data-z="fit"]{width:36px!important;min-height:36px!important;border-radius:10px!important}
+.gp-head{position:relative!important}
+.gp-main{height:100%!important}
+@media (max-width:600px){.infopanel{justify-self:stretch!important;align-self:stretch!important}
+}
+.infopanel{grid-column:3/13!important;grid-row:1/4!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+.gp-head{display:flex!important;align-items:center!important;gap:7px!important;min-height:36px!important}
+.gp-btn{order:-1!important;flex:0 0 auto!important;min-height:30px!important;padding:0 8px!important;font-size:10px!important}
+.gp-head .stile{flex:0 0 34px!important;width:34px!important;height:34px!important}
+.gp-t{order:1!important;flex:1 1 auto!important;min-width:0!important}
+.gp-main{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(142px,154px)!important;gap:7px!important;align-items:center!important;min-width:0!important;min-height:0!important;flex:1 1 auto!important;overflow:hidden!important}
+.gp-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(0,auto)!important;align-content:center!important;align-items:stretch!important;gap:4px!important;min-width:0!important;min-height:0!important;max-height:100%!important;overflow-x:hidden!important}
+.gp-grid .property, .gp-grid .property:first-child, .gp-grid .property:nth-child(7){display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:31px!important;padding:3px 5px!important;border-radius:8px!important;overflow:hidden!important}
+.gp-grid .property .label{margin:0 0 2px!important;font-size:8px!important;line-height:1.1!important}
+.gp-grid .property .value{font-size:10px!important;line-height:1.15!important;word-break:break-word!important}
+.mini-atom-box{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;align-self:stretch!important;width:100%!important;min-width:0!important;min-height:0!important}
+.mini-atom-visual{position:relative!important;width:100%!important;max-width:154px!important;aspect-ratio:1/1!important;min-width:0!important;flex:0 0 auto!important}
+.mini-atom-visual .atom3d-wrap{margin:0!important}
+.mini-atom-visual .atom3d-scene{border-radius:13px!important}
+.mini-atom-hint{margin-top:3px!important;font-size:8px!important;line-height:1.1!important;text-align:center!important}
+.mini-atom-visual .atom-zoom-mini{right:5px!important;bottom:5px!important;z-index:5!important}
+.mini-atom-visual .atom-zoom-mini button{width:27px!important;min-height:27px!important;border-radius:8px!important;font-size:16px!important}
+@media (max-width:600px){.gp-main{grid-template-columns:minmax(0,1fr) minmax(132px,37%)!important;gap:6px!important}
+.mini-atom-visual{max-width:148px!important}
+.gp-grid{gap:3px!important}
+.gp-grid .property{min-height:29px!important;padding:3px 4px!important}
+.gp-grid .property .label{font-size:7.5px!important}
+.gp-grid .property .value{font-size:9px!important}
+}
+@media (max-width:390px){.gp-head{gap:5px!important}
+.gp-btn{font-size:9px!important;padding:0 6px!important}
+.gp-head .stile{flex-basis:30px!important;width:30px!important;height:30px!important}
+.gp-main{grid-template-columns:minmax(0,1fr) minmax(120px,37%)!important;gap:4px!important}
+.mini-atom-visual{max-width:136px!important}
+.gp-grid .property{min-height:27px!important;padding:2px 3px!important}
+.gp-grid .property .label{font-size:7px!important}
+.gp-grid .property .value{font-size:8.5px!important}
+}
+/* Sửa chữ quá tối trong cửa sổ "Xem thêm" */
+.atom-panel h3{color:#fff8ff!important}
+.atom-caption{color:#d2c4e0!important}
+</style></head>
+<body>
+<div class="page">
+<header>
+  <div><h1>⚗️ Bảng tuần hoàn hóa học khủng bố</h1><div class="sub">Đầy đủ 118 nguyên tố · Chạm vào ô để xem thông tin</div></div>
+  <div class="tools">
+    <button class="tbtn" id="openSearch" type="button">🔍 Tìm nguyên tố</button>
+  </div>
+</header>
+<div class="legend"><span><i class="dot alkali"></i>Kim loại kiềm</span>
+<span><i class="dot alkaline"></i>Kim loại kiềm thổ</span>
+<span><i class="dot transition"></i>Kim loại chuyển tiếp</span>
+<span><i class="dot post"></i>Kim loại hậu chuyển tiếp</span>
+<span><i class="dot metalloid"></i>Á kim</span>
+<span><i class="dot nonmetal"></i>Phi kim</span>
+<span><i class="dot halogen"></i>Halogen</span>
+<span><i class="dot noble"></i>Khí hiếm</span>
+<span><i class="dot lanthanoid"></i>Họ Lantan</span>
+<span><i class="dot actinoid"></i>Họ Actini</span>
+<span><i class="dot unknown"></i>Chưa xác định</span></div>
+<div class="hint">Không dùng pc thì vuốt ngang bảng để xem đủ 18 nhóm nguyên tố.</div>
+<div class="table-wrap">
+  <div class="periodic">
+<section class="infopanel" id="infoPanel" aria-live="polite" aria-label="Thông số nguyên tố">
+<div class="gp-empty"><b>⚗️ Chạm vào một nguyên tố</b>để xem đầy đủ thông số.<br>Dữ liệu có sẵn, dùng được khi không có mạng.</div>
+<div class="gp-body"><div class="gp-head"><i class="stile" id="gpTile"></i><div class="gp-t"><b id="gpName"></b><small id="gpSub"></small></div><button type="button" class="gp-btn" id="gpOpen" aria-label="Xem mô hình 3D và chi tiết">Xem thêm</button></div><div class="gp-main"><div class="gp-grid" id="gpGrid"></div><div class="mini-atom-box"><div id="miniAtomVisual" class="mini-atom-visual" aria-label="Mô hình nguyên tử 3D tương tác"></div><span class="mini-atom-hint">Tự hiểu deo chỉ</span></div></div></div>
+</section>
+<div class="placeholder" style="grid-row:6;grid-column:3"><strong>57–71</strong><small>Họ Lantan</small></div>
+<div class="placeholder" style="grid-row:7;grid-column:3"><strong>89–103</strong><small>Họ Actini</small></div>
+<div class="series-label" style="grid-row:8">DÃY LANTAN</div>
+<div class="series-label" style="grid-row:9">DÃY ACTINI</div>
+    <button type="button" class="element nonmetal" style="grid-row:1;grid-column:1" data-number="1" data-symbol="H" data-name="Tài gay" data-category="nonmetal" title="1. Hydrogen (H)" aria-label="Hydrogen, số hiệu nguyên tử 1"><span class="number">1</span><span class="symbol">H</span><span class="name">Hydrogen</span></button><button type="button" class="element noble" style="grid-row:1;grid-column:18" data-number="2" data-symbol="He" data-name="Heli" data-category="noble" title="2. Heli (He)" aria-label="Heli, số hiệu nguyên tử 2"><span class="number">2</span><span class="symbol">He</span><span class="name">Heli</span></button><button type="button" class="element alkali" style="grid-row:2;grid-column:1" data-number="3" data-symbol="Li" data-name="Liti" data-category="alkali" title="3. Liti (Li)" aria-label="Liti, số hiệu nguyên tử 3"><span class="number">3</span><span class="symbol">Li</span><span class="name">Liti</span></button><button type="button" class="element alkaline" style="grid-row:2;grid-column:2" data-number="4" data-symbol="Be" data-name="Berili" data-category="alkaline" title="4. Berili (Be)" aria-label="Berili, số hiệu nguyên tử 4"><span class="number">4</span><span class="symbol">Be</span><span class="name">Berili</span></button><button type="button" class="element metalloid" style="grid-row:2;grid-column:13" data-number="5" data-symbol="B" data-name="Bo" data-category="metalloid" title="5. Bo (B)" aria-label="Bo, số hiệu nguyên tử 5"><span class="number">5</span><span class="symbol">B</span><span class="name">Bo</span></button><button type="button" class="element nonmetal" style="grid-row:2;grid-column:14" data-number="6" data-symbol="C" data-name="Cacbon" data-category="nonmetal" title="6. Cacbon (C)" aria-label="Cacbon, số hiệu nguyên tử 6"><span class="number">6</span><span class="symbol">C</span><span class="name">Cacbon</span></button><button type="button" class="element nonmetal" style="grid-row:2;grid-column:15" data-number="7" data-symbol="N" data-name="Nitơ" data-category="nonmetal" title="7. Nitơ (N)" aria-label="Nitơ, số hiệu nguyên tử 7"><span class="number">7</span><span class="symbol">N</span><span class="name">Nitơ</span></button><button type="button" class="element nonmetal" style="grid-row:2;grid-column:16" data-number="8" data-symbol="O" data-name="Oxi" data-category="nonmetal" title="8. Oxi (O)" aria-label="Oxi, số hiệu nguyên tử 8"><span class="number">8</span><span class="symbol">O</span><span class="name">Oxi</span></button><button type="button" class="element halogen" style="grid-row:2;grid-column:17" data-number="9" data-symbol="F" data-name="Flo" data-category="halogen" title="9. Flo (F)" aria-label="Flo, số hiệu nguyên tử 9"><span class="number">9</span><span class="symbol">F</span><span class="name">Flo</span></button><button type="button" class="element noble" style="grid-row:2;grid-column:18" data-number="10" data-symbol="Ne" data-name="Neon" data-category="noble" title="10. Neon (Ne)" aria-label="Neon, số hiệu nguyên tử 10"><span class="number">10</span><span class="symbol">Ne</span><span class="name">Neon</span></button><button type="button" class="element alkali" style="grid-row:3;grid-column:1" data-number="11" data-symbol="Na" data-name="Natri" data-category="alkali" title="11. Natri (Na)" aria-label="Natri, số hiệu nguyên tử 11"><span class="number">11</span><span class="symbol">Na</span><span class="name">Natri</span></button><button type="button" class="element alkaline" style="grid-row:3;grid-column:2" data-number="12" data-symbol="Mg" data-name="Magie" data-category="alkaline" title="12. Magie (Mg)" aria-label="Magie, số hiệu nguyên tử 12"><span class="number">12</span><span class="symbol">Mg</span><span class="name">Magie</span></button><button type="button" class="element post" style="grid-row:3;grid-column:13" data-number="13" data-symbol="Al" data-name="Nhôm" data-category="post" title="13. Nhôm (Al)" aria-label="Nhôm, số hiệu nguyên tử 13"><span class="number">13</span><span class="symbol">Al</span><span class="name">Nhôm</span></button><button type="button" class="element metalloid" style="grid-row:3;grid-column:14" data-number="14" data-symbol="Si" data-name="Silic" data-category="metalloid" title="14. Silic (Si)" aria-label="Silic, số hiệu nguyên tử 14"><span class="number">14</span><span class="symbol">Si</span><span class="name">Silic</span></button><button type="button" class="element nonmetal" style="grid-row:3;grid-column:15" data-number="15" data-symbol="P" data-name="Photpho" data-category="nonmetal" title="15. Photpho (P)" aria-label="Photpho, số hiệu nguyên tử 15"><span class="number">15</span><span class="symbol">P</span><span class="name">Photpho</span></button><button type="button" class="element nonmetal" style="grid-row:3;grid-column:16" data-number="16" data-symbol="S" data-name="Lưu huỳnh" data-category="nonmetal" title="16. Lưu huỳnh (S)" aria-label="Lưu huỳnh, số hiệu nguyên tử 16"><span class="number">16</span><span class="symbol">S</span><span class="name">Lưu huỳnh</span></button><button type="button" class="element halogen" style="grid-row:3;grid-column:17" data-number="17" data-symbol="Cl" data-name="Clo" data-category="halogen" title="17. Clo (Cl)" aria-label="Clo, số hiệu nguyên tử 17"><span class="number">17</span><span class="symbol">Cl</span><span class="name">Clo</span></button><button type="button" class="element noble" style="grid-row:3;grid-column:18" data-number="18" data-symbol="Ar" data-name="Argon" data-category="noble" title="18. Argon (Ar)" aria-label="Argon, số hiệu nguyên tử 18"><span class="number">18</span><span class="symbol">Ar</span><span class="name">Argon</span></button><button type="button" class="element alkali" style="grid-row:4;grid-column:1" data-number="19" data-symbol="K" data-name="Kali" data-category="alkali" title="19. Kali (K)" aria-label="Kali, số hiệu nguyên tử 19"><span class="number">19</span><span class="symbol">K</span><span class="name">Kali</span></button><button type="button" class="element alkaline" style="grid-row:4;grid-column:2" data-number="20" data-symbol="Ca" data-name="Canxi" data-category="alkaline" title="20. Canxi (Ca)" aria-label="Canxi, số hiệu nguyên tử 20"><span class="number">20</span><span class="symbol">Ca</span><span class="name">Canxi</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:3" data-number="21" data-symbol="Sc" data-name="Scandi" data-category="transition" title="21. Scandi (Sc)" aria-label="Scandi, số hiệu nguyên tử 21"><span class="number">21</span><span class="symbol">Sc</span><span class="name">Scandi</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:4" data-number="22" data-symbol="Ti" data-name="Titan" data-category="transition" title="22. Titan (Ti)" aria-label="Titan, số hiệu nguyên tử 22"><span class="number">22</span><span class="symbol">Ti</span><span class="name">Titan</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:5" data-number="23" data-symbol="V" data-name="Vanadi" data-category="transition" title="23. Vanadi (V)" aria-label="Vanadi, số hiệu nguyên tử 23"><span class="number">23</span><span class="symbol">V</span><span class="name">Vanadi</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:6" data-number="24" data-symbol="Cr" data-name="Crom" data-category="transition" title="24. Crom (Cr)" aria-label="Crom, số hiệu nguyên tử 24"><span class="number">24</span><span class="symbol">Cr</span><span class="name">Crom</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:7" data-number="25" data-symbol="Mn" data-name="Mangan" data-category="transition" title="25. Mangan (Mn)" aria-label="Mangan, số hiệu nguyên tử 25"><span class="number">25</span><span class="symbol">Mn</span><span class="name">Mangan</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:8" data-number="26" data-symbol="Fe" data-name="Sắt" data-category="transition" title="26. Sắt (Fe)" aria-label="Sắt, số hiệu nguyên tử 26"><span class="number">26</span><span class="symbol">Fe</span><span class="name">Sắt</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:9" data-number="27" data-symbol="Co" data-name="Coban" data-category="transition" title="27. Coban (Co)" aria-label="Coban, số hiệu nguyên tử 27"><span class="number">27</span><span class="symbol">Co</span><span class="name">Coban</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:10" data-number="28" data-symbol="Ni" data-name="Niken" data-category="transition" title="28. Niken (Ni)" aria-label="Niken, số hiệu nguyên tử 28"><span class="number">28</span><span class="symbol">Ni</span><span class="name">Niken</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:11" data-number="29" data-symbol="Cu" data-name="Đồng" data-category="transition" title="29. Đồng (Cu)" aria-label="Đồng, số hiệu nguyên tử 29"><span class="number">29</span><span class="symbol">Cu</span><span class="name">Đồng</span></button><button type="button" class="element transition" style="grid-row:4;grid-column:12" data-number="30" data-symbol="Zn" data-name="Kẽm" data-category="transition" title="30. Kẽm (Zn)" aria-label="Kẽm, số hiệu nguyên tử 30"><span class="number">30</span><span class="symbol">Zn</span><span class="name">Kẽm</span></button><button type="button" class="element post" style="grid-row:4;grid-column:13" data-number="31" data-symbol="Ga" data-name="Gali" data-category="post" title="31. Gali (Ga)" aria-label="Gali, số hiệu nguyên tử 31"><span class="number">31</span><span class="symbol">Ga</span><span class="name">Gali</span></button><button type="button" class="element metalloid" style="grid-row:4;grid-column:14" data-number="32" data-symbol="Ge" data-name="Gecmani" data-category="metalloid" title="32. Gecmani (Ge)" aria-label="Gecmani, số hiệu nguyên tử 32"><span class="number">32</span><span class="symbol">Ge</span><span class="name">Gecmani</span></button><button type="button" class="element metalloid" style="grid-row:4;grid-column:15" data-number="33" data-symbol="As" data-name="Asen" data-category="metalloid" title="33. Asen (As)" aria-label="Asen, số hiệu nguyên tử 33"><span class="number">33</span><span class="symbol">As</span><span class="name">Asen</span></button><button type="button" class="element nonmetal" style="grid-row:4;grid-column:16" data-number="34" data-symbol="Se" data-name="Selen" data-category="nonmetal" title="34. Selen (Se)" aria-label="Selen, số hiệu nguyên tử 34"><span class="number">34</span><span class="symbol">Se</span><span class="name">Selen</span></button><button type="button" class="element halogen" style="grid-row:4;grid-column:17" data-number="35" data-symbol="Br" data-name="Brom" data-category="halogen" title="35. Brom (Br)" aria-label="Brom, số hiệu nguyên tử 35"><span class="number">35</span><span class="symbol">Br</span><span class="name">Brom</span></button><button type="button" class="element noble" style="grid-row:4;grid-column:18" data-number="36" data-symbol="Kr" data-name="Krypton" data-category="noble" title="36. Krypton (Kr)" aria-label="Krypton, số hiệu nguyên tử 36"><span class="number">36</span><span class="symbol">Kr</span><span class="name">Krypton</span></button><button type="button" class="element alkali" style="grid-row:5;grid-column:1" data-number="37" data-symbol="Rb" data-name="Rubidi" data-category="alkali" title="37. Rubidi (Rb)" aria-label="Rubidi, số hiệu nguyên tử 37"><span class="number">37</span><span class="symbol">Rb</span><span class="name">Rubidi</span></button><button type="button" class="element alkaline" style="grid-row:5;grid-column:2" data-number="38" data-symbol="Sr" data-name="Stronti" data-category="alkaline" title="38. Stronti (Sr)" aria-label="Stronti, số hiệu nguyên tử 38"><span class="number">38</span><span class="symbol">Sr</span><span class="name">Stronti</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:3" data-number="39" data-symbol="Y" data-name="Ytri" data-category="transition" title="39. Ytri (Y)" aria-label="Ytri, số hiệu nguyên tử 39"><span class="number">39</span><span class="symbol">Y</span><span class="name">Ytri</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:4" data-number="40" data-symbol="Zr" data-name="Zirconi" data-category="transition" title="40. Zirconi (Zr)" aria-label="Zirconi, số hiệu nguyên tử 40"><span class="number">40</span><span class="symbol">Zr</span><span class="name">Zirconi</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:5" data-number="41" data-symbol="Nb" data-name="Niobi" data-category="transition" title="41. Niobi (Nb)" aria-label="Niobi, số hiệu nguyên tử 41"><span class="number">41</span><span class="symbol">Nb</span><span class="name">Niobi</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:6" data-number="42" data-symbol="Mo" data-name="Molypden" data-category="transition" title="42. Molypden (Mo)" aria-label="Molypden, số hiệu nguyên tử 42"><span class="number">42</span><span class="symbol">Mo</span><span class="name">Molypden</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:7" data-number="43" data-symbol="Tc" data-name="Tecneti" data-category="transition" title="43. Tecneti (Tc)" aria-label="Tecneti, số hiệu nguyên tử 43"><span class="number">43</span><span class="symbol">Tc</span><span class="name">Tecneti</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:8" data-number="44" data-symbol="Ru" data-name="Rutheni" data-category="transition" title="44. Rutheni (Ru)" aria-label="Rutheni, số hiệu nguyên tử 44"><span class="number">44</span><span class="symbol">Ru</span><span class="name">Rutheni</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:9" data-number="45" data-symbol="Rh" data-name="Rhodi" data-category="transition" title="45. Rhodi (Rh)" aria-label="Rhodi, số hiệu nguyên tử 45"><span class="number">45</span><span class="symbol">Rh</span><span class="name">Rhodi</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:10" data-number="46" data-symbol="Pd" data-name="Paladi" data-category="transition" title="46. Paladi (Pd)" aria-label="Paladi, số hiệu nguyên tử 46"><span class="number">46</span><span class="symbol">Pd</span><span class="name">Paladi</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:11" data-number="47" data-symbol="Ag" data-name="Bạc" data-category="transition" title="47. Bạc (Ag)" aria-label="Bạc, số hiệu nguyên tử 47"><span class="number">47</span><span class="symbol">Ag</span><span class="name">Bạc</span></button><button type="button" class="element transition" style="grid-row:5;grid-column:12" data-number="48" data-symbol="Cd" data-name="Cadmi" data-category="transition" title="48. Cadmi (Cd)" aria-label="Cadmi, số hiệu nguyên tử 48"><span class="number">48</span><span class="symbol">Cd</span><span class="name">Cadmi</span></button><button type="button" class="element post" style="grid-row:5;grid-column:13" data-number="49" data-symbol="In" data-name="Indi" data-category="post" title="49. Indi (In)" aria-label="Indi, số hiệu nguyên tử 49"><span class="number">49</span><span class="symbol">In</span><span class="name">Indi</span></button><button type="button" class="element post" style="grid-row:5;grid-column:14" data-number="50" data-symbol="Sn" data-name="Thiếc" data-category="post" title="50. Thiếc (Sn)" aria-label="Thiếc, số hiệu nguyên tử 50"><span class="number">50</span><span class="symbol">Sn</span><span class="name">Thiếc</span></button><button type="button" class="element metalloid" style="grid-row:5;grid-column:15" data-number="51" data-symbol="Sb" data-name="Antimon" data-category="metalloid" title="51. Antimon (Sb)" aria-label="Antimon, số hiệu nguyên tử 51"><span class="number">51</span><span class="symbol">Sb</span><span class="name">Antimon</span></button><button type="button" class="element metalloid" style="grid-row:5;grid-column:16" data-number="52" data-symbol="Te" data-name="Telu" data-category="metalloid" title="52. Telu (Te)" aria-label="Telu, số hiệu nguyên tử 52"><span class="number">52</span><span class="symbol">Te</span><span class="name">Telu</span></button><button type="button" class="element halogen" style="grid-row:5;grid-column:17" data-number="53" data-symbol="I" data-name="Iốt" data-category="halogen" title="53. Iốt (I)" aria-label="Iốt, số hiệu nguyên tử 53"><span class="number">53</span><span class="symbol">I</span><span class="name">Iốt</span></button><button type="button" class="element noble" style="grid-row:5;grid-column:18" data-number="54" data-symbol="Xe" data-name="Xenon" data-category="noble" title="54. Xenon (Xe)" aria-label="Xenon, số hiệu nguyên tử 54"><span class="number">54</span><span class="symbol">Xe</span><span class="name">Xenon</span></button><button type="button" class="element alkali" style="grid-row:6;grid-column:1" data-number="55" data-symbol="Cs" data-name="Xesi" data-category="alkali" title="55. Xesi (Cs)" aria-label="Xesi, số hiệu nguyên tử 55"><span class="number">55</span><span class="symbol">Cs</span><span class="name">Xesi</span></button><button type="button" class="element alkaline" style="grid-row:6;grid-column:2" data-number="56" data-symbol="Ba" data-name="Bari" data-category="alkaline" title="56. Bari (Ba)" aria-label="Bari, số hiệu nguyên tử 56"><span class="number">56</span><span class="symbol">Ba</span><span class="name">Bari</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:4" data-number="57" data-symbol="La" data-name="Lantan" data-category="lanthanoid" title="57. Lantan (La)" aria-label="Lantan, số hiệu nguyên tử 57"><span class="number">57</span><span class="symbol">La</span><span class="name">Lantan</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:5" data-number="58" data-symbol="Ce" data-name="Xeri" data-category="lanthanoid" title="58. Xeri (Ce)" aria-label="Xeri, số hiệu nguyên tử 58"><span class="number">58</span><span class="symbol">Ce</span><span class="name">Xeri</span></button><button type="button" class="element lanthanoid long" style="grid-row:8;grid-column:6" data-number="59" data-symbol="Pr" data-name="Praseodymi" data-category="lanthanoid" title="59. Praseodymi (Pr)" aria-label="Praseodymi, số hiệu nguyên tử 59"><span class="number">59</span><span class="symbol">Pr</span><span class="name">Praseodymi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:7" data-number="60" data-symbol="Nd" data-name="Neodymi" data-category="lanthanoid" title="60. Neodymi (Nd)" aria-label="Neodymi, số hiệu nguyên tử 60"><span class="number">60</span><span class="symbol">Nd</span><span class="name">Neodymi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:8" data-number="61" data-symbol="Pm" data-name="Promethi" data-category="lanthanoid" title="61. Promethi (Pm)" aria-label="Promethi, số hiệu nguyên tử 61"><span class="number">61</span><span class="symbol">Pm</span><span class="name">Promethi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:9" data-number="62" data-symbol="Sm" data-name="Samari" data-category="lanthanoid" title="62. Samari (Sm)" aria-label="Samari, số hiệu nguyên tử 62"><span class="number">62</span><span class="symbol">Sm</span><span class="name">Samari</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:10" data-number="63" data-symbol="Eu" data-name="Europi" data-category="lanthanoid" title="63. Europi (Eu)" aria-label="Europi, số hiệu nguyên tử 63"><span class="number">63</span><span class="symbol">Eu</span><span class="name">Europi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:11" data-number="64" data-symbol="Gd" data-name="Gadolini" data-category="lanthanoid" title="64. Gadolini (Gd)" aria-label="Gadolini, số hiệu nguyên tử 64"><span class="number">64</span><span class="symbol">Gd</span><span class="name">Gadolini</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:12" data-number="65" data-symbol="Tb" data-name="Terbi" data-category="lanthanoid" title="65. Terbi (Tb)" aria-label="Terbi, số hiệu nguyên tử 65"><span class="number">65</span><span class="symbol">Tb</span><span class="name">Terbi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:13" data-number="66" data-symbol="Dy" data-name="Dysprosi" data-category="lanthanoid" title="66. Dysprosi (Dy)" aria-label="Dysprosi, số hiệu nguyên tử 66"><span class="number">66</span><span class="symbol">Dy</span><span class="name">Dysprosi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:14" data-number="67" data-symbol="Ho" data-name="Holmi" data-category="lanthanoid" title="67. Holmi (Ho)" aria-label="Holmi, số hiệu nguyên tử 67"><span class="number">67</span><span class="symbol">Ho</span><span class="name">Holmi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:15" data-number="68" data-symbol="Er" data-name="Erbi" data-category="lanthanoid" title="68. Erbi (Er)" aria-label="Erbi, số hiệu nguyên tử 68"><span class="number">68</span><span class="symbol">Er</span><span class="name">Erbi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:16" data-number="69" data-symbol="Tm" data-name="Thuli" data-category="lanthanoid" title="69. Thuli (Tm)" aria-label="Thuli, số hiệu nguyên tử 69"><span class="number">69</span><span class="symbol">Tm</span><span class="name">Thuli</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:17" data-number="70" data-symbol="Yb" data-name="Ytterbi" data-category="lanthanoid" title="70. Ytterbi (Yb)" aria-label="Ytterbi, số hiệu nguyên tử 70"><span class="number">70</span><span class="symbol">Yb</span><span class="name">Ytterbi</span></button><button type="button" class="element lanthanoid" style="grid-row:8;grid-column:18" data-number="71" data-symbol="Lu" data-name="Luteti" data-category="lanthanoid" title="71. Luteti (Lu)" aria-label="Luteti, số hiệu nguyên tử 71"><span class="number">71</span><span class="symbol">Lu</span><span class="name">Luteti</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:4" data-number="72" data-symbol="Hf" data-name="Hafni" data-category="transition" title="72. Hafni (Hf)" aria-label="Hafni, số hiệu nguyên tử 72"><span class="number">72</span><span class="symbol">Hf</span><span class="name">Hafni</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:5" data-number="73" data-symbol="Ta" data-name="Tantali" data-category="transition" title="73. Tantali (Ta)" aria-label="Tantali, số hiệu nguyên tử 73"><span class="number">73</span><span class="symbol">Ta</span><span class="name">Tantali</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:6" data-number="74" data-symbol="W" data-name="Wolfram" data-category="transition" title="74. Wolfram (W)" aria-label="Wolfram, số hiệu nguyên tử 74"><span class="number">74</span><span class="symbol">W</span><span class="name">Wolfram</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:7" data-number="75" data-symbol="Re" data-name="Rheni" data-category="transition" title="75. Rheni (Re)" aria-label="Rheni, số hiệu nguyên tử 75"><span class="number">75</span><span class="symbol">Re</span><span class="name">Rheni</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:8" data-number="76" data-symbol="Os" data-name="Osmi" data-category="transition" title="76. Osmi (Os)" aria-label="Osmi, số hiệu nguyên tử 76"><span class="number">76</span><span class="symbol">Os</span><span class="name">Osmi</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:9" data-number="77" data-symbol="Ir" data-name="Iridi" data-category="transition" title="77. Iridi (Ir)" aria-label="Iridi, số hiệu nguyên tử 77"><span class="number">77</span><span class="symbol">Ir</span><span class="name">Iridi</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:10" data-number="78" data-symbol="Pt" data-name="Platin" data-category="transition" title="78. Platin (Pt)" aria-label="Platin, số hiệu nguyên tử 78"><span class="number">78</span><span class="symbol">Pt</span><span class="name">Platin</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:11" data-number="79" data-symbol="Au" data-name="Vàng" data-category="transition" title="79. Vàng (Au)" aria-label="Vàng, số hiệu nguyên tử 79"><span class="number">79</span><span class="symbol">Au</span><span class="name">Vàng</span></button><button type="button" class="element transition" style="grid-row:6;grid-column:12" data-number="80" data-symbol="Hg" data-name="Thủy ngân" data-category="transition" title="80. Thủy ngân (Hg)" aria-label="Thủy ngân, số hiệu nguyên tử 80"><span class="number">80</span><span class="symbol">Hg</span><span class="name">Thủy ngân</span></button><button type="button" class="element post" style="grid-row:6;grid-column:13" data-number="81" data-symbol="Tl" data-name="Tali" data-category="post" title="81. Tali (Tl)" aria-label="Tali, số hiệu nguyên tử 81"><span class="number">81</span><span class="symbol">Tl</span><span class="name">Tali</span></button><button type="button" class="element post" style="grid-row:6;grid-column:14" data-number="82" data-symbol="Pb" data-name="Chì" data-category="post" title="82. Chì (Pb)" aria-label="Chì, số hiệu nguyên tử 82"><span class="number">82</span><span class="symbol">Pb</span><span class="name">Chì</span></button><button type="button" class="element post" style="grid-row:6;grid-column:15" data-number="83" data-symbol="Bi" data-name="Bitmut" data-category="post" title="83. Bitmut (Bi)" aria-label="Bitmut, số hiệu nguyên tử 83"><span class="number">83</span><span class="symbol">Bi</span><span class="name">Bitmut</span></button><button type="button" class="element post" style="grid-row:6;grid-column:16" data-number="84" data-symbol="Po" data-name="Poloni" data-category="post" title="84. Poloni (Po)" aria-label="Poloni, số hiệu nguyên tử 84"><span class="number">84</span><span class="symbol">Po</span><span class="name">Poloni</span></button><button type="button" class="element halogen" style="grid-row:6;grid-column:17" data-number="85" data-symbol="At" data-name="Astatin" data-category="halogen" title="85. Astatin (At)" aria-label="Astatin, số hiệu nguyên tử 85"><span class="number">85</span><span class="symbol">At</span><span class="name">Astatin</span></button><button type="button" class="element noble" style="grid-row:6;grid-column:18" data-number="86" data-symbol="Rn" data-name="Radon" data-category="noble" title="86. Radon (Rn)" aria-label="Radon, số hiệu nguyên tử 86"><span class="number">86</span><span class="symbol">Rn</span><span class="name">Radon</span></button><button type="button" class="element alkali" style="grid-row:7;grid-column:1" data-number="87" data-symbol="Fr" data-name="Franxi" data-category="alkali" title="87. Franxi (Fr)" aria-label="Franxi, số hiệu nguyên tử 87"><span class="number">87</span><span class="symbol">Fr</span><span class="name">Franxi</span></button><button type="button" class="element alkaline" style="grid-row:7;grid-column:2" data-number="88" data-symbol="Ra" data-name="Radi" data-category="alkaline" title="88. Radi (Ra)" aria-label="Radi, số hiệu nguyên tử 88"><span class="number">88</span><span class="symbol">Ra</span><span class="name">Radi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:4" data-number="89" data-symbol="Ac" data-name="Actini" data-category="actinoid" title="89. Actini (Ac)" aria-label="Actini, số hiệu nguyên tử 89"><span class="number">89</span><span class="symbol">Ac</span><span class="name">Actini</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:5" data-number="90" data-symbol="Th" data-name="Thori" data-category="actinoid" title="90. Thori (Th)" aria-label="Thori, số hiệu nguyên tử 90"><span class="number">90</span><span class="symbol">Th</span><span class="name">Thori</span></button><button type="button" class="element actinoid long" style="grid-row:9;grid-column:6" data-number="91" data-symbol="Pa" data-name="Protactini" data-category="actinoid" title="91. Protactini (Pa)" aria-label="Protactini, số hiệu nguyên tử 91"><span class="number">91</span><span class="symbol">Pa</span><span class="name">Protactini</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:7" data-number="92" data-symbol="U" data-name="Urani" data-category="actinoid" title="92. Urani (U)" aria-label="Urani, số hiệu nguyên tử 92"><span class="number">92</span><span class="symbol">U</span><span class="name">Urani</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:8" data-number="93" data-symbol="Np" data-name="Neptuni" data-category="actinoid" title="93. Neptuni (Np)" aria-label="Neptuni, số hiệu nguyên tử 93"><span class="number">93</span><span class="symbol">Np</span><span class="name">Neptuni</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:9" data-number="94" data-symbol="Pu" data-name="Plutoni" data-category="actinoid" title="94. Plutoni (Pu)" aria-label="Plutoni, số hiệu nguyên tử 94"><span class="number">94</span><span class="symbol">Pu</span><span class="name">Plutoni</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:10" data-number="95" data-symbol="Am" data-name="Americi" data-category="actinoid" title="95. Americi (Am)" aria-label="Americi, số hiệu nguyên tử 95"><span class="number">95</span><span class="symbol">Am</span><span class="name">Americi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:11" data-number="96" data-symbol="Cm" data-name="Curi" data-category="actinoid" title="96. Curi (Cm)" aria-label="Curi, số hiệu nguyên tử 96"><span class="number">96</span><span class="symbol">Cm</span><span class="name">Curi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:12" data-number="97" data-symbol="Bk" data-name="Berkeli" data-category="actinoid" title="97. Berkeli (Bk)" aria-label="Berkeli, số hiệu nguyên tử 97"><span class="number">97</span><span class="symbol">Bk</span><span class="name">Berkeli</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:13" data-number="98" data-symbol="Cf" data-name="Californi" data-category="actinoid" title="98. Californi (Cf)" aria-label="Californi, số hiệu nguyên tử 98"><span class="number">98</span><span class="symbol">Cf</span><span class="name">Californi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:14" data-number="99" data-symbol="Es" data-name="Einsteini" data-category="actinoid" title="99. Einsteini (Es)" aria-label="Einsteini, số hiệu nguyên tử 99"><span class="number">99</span><span class="symbol">Es</span><span class="name">Einsteini</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:15" data-number="100" data-symbol="Fm" data-name="Fermi" data-category="actinoid" title="100. Fermi (Fm)" aria-label="Fermi, số hiệu nguyên tử 100"><span class="number">100</span><span class="symbol">Fm</span><span class="name">Fermi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:16" data-number="101" data-symbol="Md" data-name="Mendelevi" data-category="actinoid" title="101. Mendelevi (Md)" aria-label="Mendelevi, số hiệu nguyên tử 101"><span class="number">101</span><span class="symbol">Md</span><span class="name">Mendelevi</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:17" data-number="102" data-symbol="No" data-name="Nobeli" data-category="actinoid" title="102. Nobeli (No)" aria-label="Nobeli, số hiệu nguyên tử 102"><span class="number">102</span><span class="symbol">No</span><span class="name">Nobeli</span></button><button type="button" class="element actinoid" style="grid-row:9;grid-column:18" data-number="103" data-symbol="Lr" data-name="Lawrenci" data-category="actinoid" title="103. Lawrenci (Lr)" aria-label="Lawrenci, số hiệu nguyên tử 103"><span class="number">103</span><span class="symbol">Lr</span><span class="name">Lawrenci</span></button><button type="button" class="element transition long" style="grid-row:7;grid-column:4" data-number="104" data-symbol="Rf" data-name="Rutherfordi" data-category="transition" title="104. Rutherfordi (Rf)" aria-label="Rutherfordi, số hiệu nguyên tử 104"><span class="number">104</span><span class="symbol">Rf</span><span class="name">Rutherfordi</span></button><button type="button" class="element transition" style="grid-row:7;grid-column:5" data-number="105" data-symbol="Db" data-name="Dubni" data-category="transition" title="105. Dubni (Db)" aria-label="Dubni, số hiệu nguyên tử 105"><span class="number">105</span><span class="symbol">Db</span><span class="name">Dubni</span></button><button type="button" class="element transition" style="grid-row:7;grid-column:6" data-number="106" data-symbol="Sg" data-name="Seaborgi" data-category="transition" title="106. Seaborgi (Sg)" aria-label="Seaborgi, số hiệu nguyên tử 106"><span class="number">106</span><span class="symbol">Sg</span><span class="name">Seaborgi</span></button><button type="button" class="element transition" style="grid-row:7;grid-column:7" data-number="107" data-symbol="Bh" data-name="Bohri" data-category="transition" title="107. Bohri (Bh)" aria-label="Bohri, số hiệu nguyên tử 107"><span class="number">107</span><span class="symbol">Bh</span><span class="name">Bohri</span></button><button type="button" class="element transition" style="grid-row:7;grid-column:8" data-number="108" data-symbol="Hs" data-name="Hassi" data-category="transition" title="108. Hassi (Hs)" aria-label="Hassi, số hiệu nguyên tử 108"><span class="number">108</span><span class="symbol">Hs</span><span class="name">Hassi</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:9" data-number="109" data-symbol="Mt" data-name="Meitneri" data-category="unknown" title="109. Meitneri (Mt)" aria-label="Meitneri, số hiệu nguyên tử 109"><span class="number">109</span><span class="symbol">Mt</span><span class="name">Meitneri</span></button><button type="button" class="element unknown long" style="grid-row:7;grid-column:10" data-number="110" data-symbol="Ds" data-name="Darmstadti" data-category="unknown" title="110. Darmstadti (Ds)" aria-label="Darmstadti, số hiệu nguyên tử 110"><span class="number">110</span><span class="symbol">Ds</span><span class="name">Darmstadti</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:11" data-number="111" data-symbol="Rg" data-name="Roentgeni" data-category="unknown" title="111. Roentgeni (Rg)" aria-label="Roentgeni, số hiệu nguyên tử 111"><span class="number">111</span><span class="symbol">Rg</span><span class="name">Roentgeni</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:12" data-number="112" data-symbol="Cn" data-name="Copernixi" data-category="unknown" title="112. Copernixi (Cn)" aria-label="Copernixi, số hiệu nguyên tử 112"><span class="number">112</span><span class="symbol">Cn</span><span class="name">Copernixi</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:13" data-number="113" data-symbol="Nh" data-name="Nihoni" data-category="unknown" title="113. Nihoni (Nh)" aria-label="Nihoni, số hiệu nguyên tử 113"><span class="number">113</span><span class="symbol">Nh</span><span class="name">Nihoni</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:14" data-number="114" data-symbol="Fl" data-name="Flerovi" data-category="unknown" title="114. Flerovi (Fl)" aria-label="Flerovi, số hiệu nguyên tử 114"><span class="number">114</span><span class="symbol">Fl</span><span class="name">Flerovi</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:15" data-number="115" data-symbol="Mc" data-name="Moscovi" data-category="unknown" title="115. Moscovi (Mc)" aria-label="Moscovi, số hiệu nguyên tử 115"><span class="number">115</span><span class="symbol">Mc</span><span class="name">Moscovi</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:16" data-number="116" data-symbol="Lv" data-name="Livermori" data-category="unknown" title="116. Livermori (Lv)" aria-label="Livermori, số hiệu nguyên tử 116"><span class="number">116</span><span class="symbol">Lv</span><span class="name">Livermori</span></button><button type="button" class="element unknown long" style="grid-row:7;grid-column:17" data-number="117" data-symbol="Ts" data-name="Tennessine" data-category="unknown" title="117. Tennessine (Ts)" aria-label="Tennessine, số hiệu nguyên tử 117"><span class="number">117</span><span class="symbol">Ts</span><span class="name">Tennessine</span></button><button type="button" class="element unknown" style="grid-row:7;grid-column:18" data-number="118" data-symbol="Og" data-name="Oganesson" data-category="unknown" title="118. Oganesson (Og)" aria-label="Oganesson, số hiệu nguyên tử 118"><span class="number">118</span><span class="symbol">Og</span><span class="name">Oganesson</span></button>
+  </div>
+</div>
+<div class="sp" id="searchPage" role="dialog" aria-label="Tìm kiếm nguyên tố">
+  <div class="sp-top"><button class="sp-back" id="spBack" type="button" aria-label="Quay lại bảng">←</button><input id="sq" type="search" placeholder="Tên, ký hiệu, số nguyên tử hoặc nhóm..." autocomplete="off"></div>
+  <div class="chips" id="searchChips"></div><div class="sp-count" id="searchCount" aria-live="polite"></div><div class="sp-list" id="searchList"></div>
+</div>
+<div class="modal" id="elementModal" role="dialog" aria-modal="true" aria-labelledby="modalName">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-symbol" id="modalSymbol">?</div>
+      <div class="modal-title"><h2 id="modalName">Thông tin nguyên tố</h2><p id="modalSub">Chọn nguyên tố trong bảng tuần hoàn</p></div>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Đóng">×</button>
+    </div>
+    <section class="atom-panel" aria-label="Mô hình cấu tạo nguyên tử">
+       <h3>⚛️ Cấu trúc nguyên tử</h3>
+       <p class="atom-caption">Mô hình 3D minh họa · các lớp electron đồng tâm</p>
+       <div class="atom-layout">
+         <div><div id="atomVisual"></div><p class="atom3d-hint">Kéo để xoay · chụm hai ngón hoặc cuộn chuột để phóng to · bấm đúp để về vừa khung</p></div>
+         <div><div class="shell-list" id="shellList"></div><p class="atom-caption" id="nucleusInfo" style="margin-top:9px"></p></div>
+       </div>
+     </section>
+     <div class="property-grid" id="propertyGrid"></div>
+    <p class="modal-note" id="modalNote">Toàn bộ dữ liệu đã nhúng sẵn trong file nên dùng được ngoại tuyến. Số nơtron phụ thuộc đồng vị (ứng với đồng vị tham chiếu); nhiệt độ nóng chảy/sôi đổi từ K sang °C; các nguyên tố siêu nặng chưa đo được sẽ hiện “Chưa có dữ liệu”.</p>
+  </div>
+</div>
+<div class="foot">Bảng tuần hoàn gồm 118 nguyên tố. Một số nguyên tố siêu nặng có tính chất được dự đoán nên được xếp vào nhóm chưa xác định.</div>
+</div>
+<script>(function() {
+  var categoryNames = {"alkali":"Kim loại kiềm","alkaline":"Kim loại kiềm thổ","transition":"Kim loại chuyển tiếp","post":"Kim loại hậu chuyển tiếp","metalloid":"Á kim","nonmetal":"Phi kim","halogen":"Halogen","noble":"Khí hiếm","lanthanoid":"Họ Lantan","actinoid":"Họ Actini","unknown":"Chưa xác định"};
+  var offline = {"1":{"mass":1.008,"isotope":1},"2":{"mass":4.003,"isotope":4},"3":{"mass":6.941,"isotope":7},"4":{"mass":9.012,"isotope":9},"5":{"mass":10.812,"isotope":11},"6":{"mass":12.011,"isotope":12},"7":{"mass":14.007,"isotope":14},"8":{"mass":15.999,"isotope":16},"9":{"mass":18.998,"isotope":19},"10":{"mass":20.18,"isotope":20},"11":{"mass":22.99,"isotope":23},"12":{"mass":24.305,"isotope":24},"13":{"mass":26.982,"isotope":27},"14":{"mass":28.086,"isotope":28},"15":{"mass":30.974,"isotope":31},"16":{"mass":32.067,"isotope":32},"17":{"mass":35.453,"isotope":35},"18":{"mass":39.948,"isotope":40},"19":{"mass":39.098,"isotope":39},"20":{"mass":40.078,"isotope":40},"21":{"mass":44.956,"isotope":45},"22":{"mass":47.867,"isotope":48},"23":{"mass":50.944,"isotope":51},"24":{"mass":51.996,"isotope":52},"25":{"mass":54.938,"isotope":55},"26":{"mass":55.845,"isotope":56},"27":{"mass":58.933,"isotope":59},"28":{"mass":58.693,"isotope":58},"29":{"mass":63.546,"isotope":63},"30":{"mass":65.39,"isotope":64},"31":{"mass":69.723,"isotope":69},"32":{"mass":72.61,"isotope":74},"33":{"mass":74.922,"isotope":75},"34":{"mass":78.96,"isotope":80},"35":{"mass":79.904,"isotope":79},"36":{"mass":83.8,"isotope":84},"37":{"mass":85.468,"isotope":85},"38":{"mass":87.62,"isotope":88},"39":{"mass":88.906,"isotope":89},"40":{"mass":91.224,"isotope":90},"41":{"mass":92.906,"isotope":93},"42":{"mass":95.94,"isotope":98},"43":{"mass":98.0,"isotope":97},"44":{"mass":101.07,"isotope":102},"45":{"mass":102.906,"isotope":103},"46":{"mass":106.42,"isotope":106},"47":{"mass":107.868,"isotope":107},"48":{"mass":112.412,"isotope":114},"49":{"mass":114.818,"isotope":115},"50":{"mass":118.711,"isotope":120},"51":{"mass":121.76,"isotope":121},"52":{"mass":127.6,"isotope":130},"53":{"mass":126.904,"isotope":127},"54":{"mass":131.29,"isotope":132},"55":{"mass":132.905,"isotope":133},"56":{"mass":137.328,"isotope":138},"57":{"mass":138.906,"isotope":139},"58":{"mass":140.116,"isotope":140},"59":{"mass":140.908,"isotope":141},"60":{"mass":144.24,"isotope":142},"61":{"mass":145.0,"isotope":145},"62":{"mass":150.36,"isotope":152},"63":{"mass":151.964,"isotope":153},"64":{"mass":157.25,"isotope":158},"65":{"mass":158.925,"isotope":159},"66":{"mass":162.5,"isotope":164},"67":{"mass":164.93,"isotope":165},"68":{"mass":167.26,"isotope":166},"69":{"mass":168.934,"isotope":169},"70":{"mass":173.04,"isotope":174},"71":{"mass":174.967,"isotope":175},"72":{"mass":178.49,"isotope":180},"73":{"mass":180.948,"isotope":181},"74":{"mass":183.84,"isotope":184},"75":{"mass":186.207,"isotope":187},"76":{"mass":190.23,"isotope":192},"77":{"mass":192.217,"isotope":193},"78":{"mass":195.078,"isotope":195},"79":{"mass":196.967,"isotope":197},"80":{"mass":200.59,"isotope":202},"81":{"mass":204.383,"isotope":205},"82":{"mass":207.2,"isotope":208},"83":{"mass":208.98,"isotope":209},"84":{"mass":209.0,"isotope":209},"85":{"mass":210.0,"isotope":210},"86":{"mass":222.0,"isotope":222},"87":{"mass":223.0,"isotope":223},"88":{"mass":226.0,"isotope":226},"89":{"mass":227.0,"isotope":227},"90":{"mass":232.038,"isotope":232},"91":{"mass":231.036,"isotope":231},"92":{"mass":238.029,"isotope":238},"93":{"mass":237.0,"isotope":236},"94":{"mass":244.0,"isotope":238},"95":{"mass":243.0,"isotope":241},"96":{"mass":247.0,"isotope":243},"97":{"mass":247.0,"isotope":247},"98":{"mass":251.0,"isotope":249},"99":{"mass":252.0,"isotope":252},"100":{"mass":257.0,"isotope":257},"101":{"mass":258.0,"isotope":258},"102":{"mass":259.0,"isotope":259},"103":{"mass":262.0,"isotope":262},"104":{"mass":267.0,"isotope":267},"105":{"mass":268.0,"isotope":268},"106":{"mass":269.0,"isotope":271},"107":{"mass":270.0,"isotope":270},"108":{"mass":269.0,"isotope":269},"109":{"mass":278.0,"isotope":278},"110":{"mass":281.0,"isotope":281},"111":{"mass":281.0,"isotope":281},"112":{"mass":285.0,"isotope":285},"113":{"mass":284.0,"isotope":284},"114":{"mass":289.0,"isotope":289},"115":{"mass":288.0,"isotope":288},"116":{"mass":293.0,"isotope":293},"117":{"mass":292.0,"isotope":292},"118":{"mass":294.0,"isotope":294}};
+  var cards = document.querySelectorAll('.element');
+  var selected = null;
+  var D="2.2|120|13.598|0.754|0.0000899|13.81|20.28|+1, -1|1766;|140|24.587||0.0001785|0.95|4.22|0|1895;0.98|182|5.392|0.618|0.534|453.65|1615|+1|1817;1.57|153|9.323||1.85|1560|2744|+2|1798;2.04|192|8.298|0.28|2.34|2348|4273|+3|1808;2.55|170|11.26|1.262|2.267|3823|4098|+4, +2, -4|Ancient;3.04|155|14.534||0.001251|63.15|77.36|-3, +3, +5|1772;3.44|152|13.618|1.461|0.001429|54.36|90.2|-2|1774;3.98|147|17.423|3.401|0.001696|53.53|85.03|-1|1670;|154|21.565||0.0009|24.56|27.07|0|1898;0.93|227|5.139|0.548|0.971|370.87|1156|+1|1807;1.31|173|7.646||1.738|923|1363|+2|1755;1.61|184|5.986|0.433|2.698|933.47|2792|+3|1825;1.9|210|8.152|1.39|2.3296|1687|3538|+4, -4|1824;2.19|180|10.487|0.746|1.82|317.3|550|+5, +3, -3|1669;2.58|180|10.36|2.077|2.067|388.36|717.87|-2, +4, +6|Ancient;3.16|175|12.968|3.617|0.003214|171.6|239.11|-1, +1, +5, +7|1774;|188|15.76||0.001784|83.8|87.3|0|1894;0.82|275|4.341|0.501|0.862|336.53|1032|+1|1807;1|231|6.113|0.025|1.54|1115|1757|+2|1808;1.36|211|6.561|0.188|2.989|1814|3109|+3|1879;1.54|187|6.828|0.079|4.54|1941|3560|+4|1791;1.63|179|6.746|0.525|6.11|2183|3680|+5|1801;1.66|189|6.767|0.666|7.15|2180|2944|+3, +6|1797;1.55|197|7.434||7.3|1519|2334|+2, +4, +7|1774;1.83|194|7.902|0.151|7.874|1811|3134|+2, +3|Ancient;1.88|192|7.881|0.662|8.86|1768|3200|+2, +3|1735;1.91|163|7.64|1.156|8.912|1728|3186|+2|1751;1.9|140|7.726|1.235|8.96|1357.77|2835|+2, +1|Ancient;1.65|139|9.394||7.134|692.68|1180|+2|1746;1.81|187|5.999|0.43|5.907|302.91|2477|+3|1875;2.01|211|7.899|1.233|5.323|1211.4|3106|+4|1886;2.18|185|9.789|0.804|5.776|1090|887|+5, +3, -3|Ancient;2.55|190|9.752|2.021|4.809|494|958|-2, +4, +6|1817;2.96|185|11.814|3.364|3.122|265.8|332|-1, +1, +5|1826;3|202|14||0.003733|115.79|119.93|0|1898;0.82|303|4.177|0.486|1.532|312.46|961|+1|1861;0.95|249|5.695|0.048|2.64|1050|1655|+2|1790;1.22|219|6.217|0.307|4.469|1799|3609|+3|1794;1.33|186|6.634|0.426|6.506|2128|4682|+4|1789;1.6|207|6.759|0.893|8.57|2750|5017|+5|1801;2.16|209|7.092|0.748|10.22|2896|4912|+6|1781;1.9|209|7.28|0.55|11.5|2430|4538|+7|1937;2.2|207|7.36|1.05|12.37|2607|4423|+3|1844;2.28|195|7.459|1.137|12.41|2237|3968|+3|1803;2.2|202|8.337|0.562|12.02|1828.05|3236|+2, +4|1803;1.93|172|7.576|1.302|10.501|1234.93|2435|+1|Ancient;1.69|158|8.994||8.69|594.22|1040|+2|1817;1.78|193|5.786|0.3|7.31|429.75|2345|+3|1863;1.96|217|7.344|1.112|7.287|505.08|2875|+4, +2|Ancient;2.05|206|8.608|1.046|6.685|903.78|1860|+3, +5, -3|Ancient;2.1|206|9.01|1.971|6.232|722.66|1261|-2, +4, +6|1782;2.66|198|10.451|3.059|4.93|386.85|457.4|-1, +1, +5, +7|1811;2.6|216|12.13||0.005887|161.4|165.03|0|1898;0.79|343|3.894|0.472|1.873|301.59|944|+1|1860;0.89|268|5.212|0.145|3.594|1000|2170|+2|1808;1.1|240|5.577|0.47|6.145|1193|3737|+3|1839;1.12|235|5.539|0.65|6.77|1068|3716|+3, +4|1803;1.13|239|5.473|0.962|6.773|1208|3793|+3|1885;1.14|229|5.525|1.916|7.007|1297|3347|+3|1885;1.13|236|5.582|0.129|7.26|1315|3273|+3|1945;1.17|229|5.644|0.162|7.52|1345|2067|+3, +2|1879;1.2|233|5.67|0.864|5.243|1099|1802|+3, +2|1901;1.2|237|6.15|0.137|7.895|1585|3546|+3|1880;1.1|221|5.864|1.165|8.229|1629|3503|+3|1843;1.22|229|5.939|0.352|8.55|1680|2840|+3|1886;1.23|216|6.022|0.338|8.795|1734|2993|+3|1878;1.24|235|6.108|0.312|9.066|1802|3141|+3|1842;1.25|227|6.184|1.029|9.321|1818|2223|+3|1879;1.1|242|6.254|-0.02|6.965|1097|1469|+3, +2|1878;1.27|221|5.426|0.34|9.84|1925|3675|+3|1907;1.3|212|6.825|0|13.31|2506|4876|+4|1923;1.5|217|7.55|0.322|16.654|3290|5731|+5|1802;2.36|210|7.864|0.815|19.25|3695|5828|+6|1783;1.9|217|7.834|0.15|21.02|3459|5869|+7|1925;2.2|216|8.438|1.1|22.61|3306|5285|+4|1803;2.2|202|8.967|1.564|22.56|2719|4701|+4|1803;2.28|209|8.959|2.128|21.46|2041.4|4098|+4, +2|1735;2.54|166|9.226|2.309|19.282|1337.33|3129|+3, +1|Ancient;2|155|10.438||13.5336|234.32|629.88|+2, +1|Ancient;1.62|196|6.108|0.377|11.85|577|1746|+1, +3|1861;2.33|202|7.417|0.364|11.342|600.61|2022|+2, +4|Ancient;2.02|207|7.286|0.942|9.807|544.55|1837|+3|Ancient;2|197|8.414|1.9|9.32|527|1235|+2, +4|1898;2.2|202|9.318|2.8|7|575|610|-1, +1|1940;2.2|220|10.749||0.00973|202|211.3|0|1900;0.7|348|4.073|0.486||300|950|+1|1939;0.9|283|5.278|0.1|5|973|2010|+2|1898;1.1|247|5.17|0.35|10.07|1323|3471|+3|1899;1.3|245|6.307|0|11.72|2115|5061|+4|1829;1.5|243|5.89|0.55|15.37|1841|4300|+5, +4|1913;1.38|241|6.194|0.53|19.05|1405.3|4404|+6, +4|1789;1.36|239|6.266|0.48|20.45|917|4273|+5|1940;1.28|243|6.026|-0.5|19.816|912.5|3501|+4, +6|1940;1.13|244|5.974|0.1|12|1449|2880|+3|1944;1.28|245|5.991|0.28|13.51|1613|3383|+3|1944;1.3|244|6.198|-1.72|14.78|1259|2900|+3|1949;1.3|245|6.282|-1.01|15.1|1173|1743|+3|1950;1.3|245|6.368|-0.3|8.84|1133|1269|+3|1952;1.3|245|6.5|0.35||1800||+3|1952;1.3|246|6.58|0.98||1100||+3|1955;1.3|246|6.65|-2.33||1100||+2|1957;1.3|246|4.9|0.8||1900||+3|1961;||6|||||+4|1964;|||||||+5|1968;|||||||+6|1974;|||||||+7|1981;|||||||+8|1984;||||||||1982;||||||||1994;||||||||1994;||||||||1996;||||||||2003;||||||||1998;||||||||2003;||||||||2000;||||||||2010;||||||||2002".split(';');
+  var EXC={24:'3d+1 4s-1',29:'3d+1 4s-1',41:'4d+1 5s-1',42:'4d+1 5s-1',44:'4d+1 5s-1',45:'4d+1 5s-1',46:'4d+2 5s-2',47:'4d+1 5s-1',57:'4f-1 5d+1',58:'4f-1 5d+1',64:'4f-1 5d+1',78:'5d+1 6s-1',79:'5d+1 6s-1',89:'5f-1 6d+1',90:'5f-2 6d+2',91:'5f-1 6d+1',92:'5f-1 6d+1',93:'5f-1 6d+1',96:'5f-1 6d+1',103:'6d-1 7p+1'};
+  var ORD = '1s 2s 2p 3s 3p 4s 3d 4p 5s 4d 5p 6s 4f 5d 6p 7s 5f 6d 7p'.split(' ');
+  var CORES = [[86, '[Rn]', 15], [54, '[Xe]', 11], [36, '[Kr]', 8], [18, '[Ar]', 5], [10, '[Ne]', 3], [2, '[He]', 1]];
+  function occupancy(z) {
+    var occ = {}, left = z;
+    ORD.forEach(function(o) { if (left > 0) { occ[o] = Math.min(left, {s:2, p:6, d:10, f:14}[o[1]]); left -= occ[o]; } });
+    (EXC[z] || '').split(' ').forEach(function(x) { if (x) { var k = x.slice(0, 2); occ[k] = (occ[k] || 0) + Number(x.slice(2)); } });
+    return occ;
+  }
+  function config(z) {
+    var occ = occupancy(z), core = CORES.filter(function(c) { return c[0] < z; })[0], skip = core ? ORD.slice(0, core[2]) : [];
+    var names = ORD.filter(function(k) { return occ[k] && skip.indexOf(k) < 0; }).sort(function(a, b) { return a[0] - b[0] || 'spdf'.indexOf(a[1]) - 'spdf'.indexOf(b[1]); });
+    return (core ? core[1] + ' ' : '') + names.map(function(k) { return k + occ[k]; }).join(' ');
+  }
+  function getShells(z) {
+    var occ = occupancy(z), shells = [];
+    Object.keys(occ).forEach(function(k) { shells[k[0] - 1] = (shells[k[0] - 1] || 0) + occ[k]; });
+    return shells.filter(function(n) { return n > 0; });
+  }
+  var pubchem = {};
+  D.forEach(function(r, i) {
+    var p=r.split('|'), z=i+1, mp=p[5], bp=p[6];
+    pubchem[z]={AtomicMass:(offline[z]||{}).mass, ElectronConfiguration:config(z), Electronegativity:p[0], AtomicRadius:p[1], IonizationEnergy:p[2], ElectronAffinity:p[3], Density:p[4], MeltingPoint:mp, BoilingPoint:bp, OxidationStates:p[7], YearDiscovered:p[8],
+      StandardState: mp ? (bp && Number(bp)<298 ? 'Gas' : Number(mp)<298 ? 'Liquid' : 'Solid') : ''};
+  });
+  var modal = document.getElementById('elementModal'), sp = document.getElementById('searchPage');
+  var propertyGrid = document.getElementById('propertyGrid');
+  function setOpen(node, on) {
+    node.classList.toggle('open', on);
+    document.body.classList.toggle('lock', modal.classList.contains('open') || sp.classList.contains('open'));
+  }
+  function normalize(value) {
+    value = String(value).toLowerCase();
+    if (value.normalize) value = value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return value.replace(/đ/g, 'd');
+  }
+  function safe(value) {
+    return String(value).replace(/[&<>\"']/g, function(ch) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch];
+    });
+  }
+  function valueOrDash(v) { return v === undefined || v === null || String(v).trim() === '' ? 'Chưa có dữ liệu' : String(v); }
+  function translateState(v) { return ({'Gas':'Khí','Liquid':'Lỏng','Solid':'Rắn'})[v] || valueOrDash(v); }
+  function num(v) { if (v === '' || v === null || v === undefined) return null; var n = Number(v); return isFinite(n) ? n : null; }
+  function tempC(v) {
+    var n = num(v);
+    return n === null ? 'Chưa có dữ liệu' : (n - 273.15).toFixed(2).replace(/\.?0+$/, '') + ' °C';
+  }
+  function prop(label, value, wide) {
+    return '<div class="property' + (wide ? ' wide' : '') + '"><span class="label">' + safe(label) + '</span><span class="value">' + safe(valueOrDash(value)) + '</span></div>';
+  }
+  function renderAtom(z, symbol, isotope, targetId, miniMode) {
+    var shells = getShells(z);
+    var visual = document.getElementById(targetId || 'atomVisual');
+    if (visual.__atomCleanup) { visual.__atomCleanup(); visual.__atomCleanup = null; }
+    var frameKey = miniMode ? '__miniAtom3dFrame' : '__atom3dFrame';
+    var sceneId = miniMode ? 'miniAtom3dScene' : 'atom3dScene';
+    var canvasId = miniMode ? 'miniAtom3dCanvas' : 'atom3dCanvas';
+    if (window[frameKey]) {
+      cancelAnimationFrame(window[frameKey]);
+      window[frameKey] = 0;
+    }
+    if (visual.__atomResizeHandler) {
+      window.removeEventListener('resize', visual.__atomResizeHandler);
+      visual.__atomResizeHandler = null;
+    }
+    visual.innerHTML =
+      '<div class="atom3d-wrap"><div class="atom3d-scene '+(miniMode ? 'mini-atom3d-scene' : '')+'" id="'+sceneId+'" aria-label="Mô hình nguyên tử 3D '+safe(symbol)+' với '+z+' electron">' +
+      '<canvas class="atom3d-canvas" id="'+canvasId+'" role="img" aria-label="Mô hình 3D, kéo để xoay, chụm hoặc cuộn để phóng to"></canvas></div>' +
+      '<div class="atom-zoom'+(miniMode ? ' atom-zoom-mini' : '')+'"><button type="button" data-z="fit" aria-label="Đưa mô hình về góc nhìn ban đầu">⟲</button></div>' + '</div>';
+    var scene = document.getElementById(sceneId);
+    var canvas = document.getElementById(canvasId);
+    var ctx = canvas.getContext('2d');
+    var width = 320, height = 320, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var camX = -0.42, camY = 0.30;
+    var pts = {}, pinchD = 0, pinchZ = 1, userZoom = 1, fit = 1, view = 1;
+    var outerR = 20 + shells.length * 12;
+    var isInView = true;
+    var visibilityHandler = function() {
+      if (!document.hidden && isInView && !window[frameKey]) {
+        window[frameKey] = requestAnimationFrame(drawFrame);
+      }
+    };
+    function setView(v) { userZoom = Math.max(0.5, Math.min(4, v)); view = fit * userZoom; }
+    var startTime = performance.now();
+    function resizeCanvas() {
+      var measured = scene.clientWidth || 300;
+      width = measured;
+      height = measured;
+      fit = Math.max(0.25, Math.min(2.4, 0.36 * width / (outerR * 1.2)));
+      view = fit * userZoom;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resizeCanvas();
+    var shellData = shells.map(function(count, index) {
+      return {
+        count: count,
+        radius: 20 + (index + 1) * 12,
+        tiltX: (0.28 + (index % 3) * 0.43),
+        tiltY: (index * 0.91) % (Math.PI * 2),
+        speed: 0.00042 * (1 + (index % 3) * 0.17),
+        index: index
+      };
+    });
+    function rotatePoint(x, y, z, rx, ry) {
+      var c = Math.cos(rx), s = Math.sin(rx);
+      var y1 = y * c - z * s, z1 = y * s + z * c;
+      var c2 = Math.cos(ry), s2 = Math.sin(ry);
+      return {
+        x: x * c2 + z1 * s2,
+        y: y1,
+        z: -x * s2 + z1 * c2
+      };
+    }
+    function project(x, y, z, cx, cy) {
+      var p = rotatePoint(x, y, z, camX, camY);
+      var cameraDistance = 450;
+      var focal = 430;
+      var scale = focal / (cameraDistance - p.z) * view;
+      return {
+        x: cx + p.x * scale,
+        y: cy + p.y * scale,
+        z: p.z,
+        scale: scale
+      };
+    }
+    function shellPoint(shell, angle) {
+      var x = shell.radius * Math.cos(angle);
+      var y = shell.radius * Math.sin(angle);
+      var z = 0;
+      var p = rotatePoint(x, y, z, shell.tiltX, shell.tiltY);
+      return p;
+    }
+    var SPRITE_R = 10;
+    function makeSprite(colors, haloScale, haloFill, haloStroke) {
+      var S = 3;
+      var pad = SPRITE_R * (haloScale || 1);
+      var size = Math.ceil(pad * 2 * S);
+      var c = document.createElement('canvas');
+      c.width = c.height = size;
+      var g = c.getContext('2d');
+      var m = size / 2;
+      if (haloScale) {
+        g.beginPath();
+        g.arc(m, m, pad * S, 0, Math.PI * 2);
+        g.fillStyle = haloFill;
+        g.fill();
+        g.lineWidth = 1.2 * S / 2;
+        g.strokeStyle = haloStroke;
+        g.stroke();
+      }
+      var r = SPRITE_R * S;
+      var grad = g.createRadialGradient(m - r * 0.32, m - r * 0.38, r * 0.06, m, m, r);
+      grad.addColorStop(0, colors[0]);
+      grad.addColorStop(0.3, colors[1]);
+      grad.addColorStop(0.75, colors[2]);
+      grad.addColorStop(1, colors[3]);
+      g.fillStyle = grad;
+      g.beginPath();
+      g.arc(m, m, r, 0, Math.PI * 2);
+      g.fill();
+      var spec = g.createRadialGradient(m - r * 0.36, m - r * 0.42, 0, m - r * 0.36, m - r * 0.42, r * 0.42);
+      spec.addColorStop(0, 'rgba(255,255,255,.85)');
+      spec.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = spec;
+      g.beginPath();
+      g.arc(m, m, r, 0, Math.PI * 2);
+      g.fill();
+      return { canvas: c, pad: pad };
+    }
+    function drawSprite(sp, x, y, radius) {
+      var k = radius / SPRITE_R;
+      var d = sp.pad * 2 * k;
+      ctx.drawImage(sp.canvas, x - d / 2, y - d / 2, d, d);
+    }
+    var electronSprite = makeSprite(
+      ['#ffffff', '#bcefff', '#50b9f0', '#17527f'],
+      2.1, 'rgba(120,195,245,.16)', 'rgba(170,220,250,.14)'
+    );
+    var protonSprite = makeSprite(['#ffe3e8', '#ff7d96', '#d62f58', '#7d1233']);
+    var neutronSprite = makeSprite(['#eef9ff', '#9bd3f7', '#4a98d6', '#1d5390']);
+    var neutrons = isotope ? Math.max(0, Number(isotope) - z) : Math.round(z * (z > 20 ? 1.3 : 1));
+    var pCount = z, nCount = neutrons;
+    if (z + neutrons > 110) {
+      var ratio = 110 / (z + neutrons);
+      pCount = Math.max(1, Math.round(z * ratio));
+      nCount = neutrons > 0 ? Math.max(1, Math.round(neutrons * ratio)) : 0;
+    }
+    var nucleonR = 3.3;
+    var nucleonTotal = pCount + nCount;
+    var nucleusR = nucleonR * 1.05 * Math.cbrt(nucleonTotal);
+    var seed = z * 7919 + 17;
+    function rnd() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    var types = [];
+    for (var ti = 0; ti < pCount; ti++) types.push(0);
+    for (ti = 0; ti < nCount; ti++) types.push(1);
+    for (ti = types.length - 1; ti > 0; ti--) {
+      var tj = Math.floor(rnd() * (ti + 1));
+      var tmp = types[ti]; types[ti] = types[tj]; types[tj] = tmp;
+    }
+    var nucleons = types.map(function(type, i) {
+      var h = (i + 0.5) / nucleonTotal;
+      var dist = nucleonTotal === 1 ? 0 : nucleusR * Math.cbrt(h);
+      var u = (i * 0.7548776662) % 1;
+      var polar = Math.acos(1 - 2 * u);
+      var az = i * 2.399963 + rnd() * 0.4;
+      dist *= 0.96 + rnd() * 0.08;
+      return {
+        x: dist * Math.sin(polar) * Math.cos(az),
+        y: dist * Math.sin(polar) * Math.sin(az),
+        z: dist * Math.cos(polar),
+        type: type
+      };
+    });
+    function drawOrbit(shell, cx, cy) {
+      var steps = 96;
+      ctx.beginPath();
+      for (var n = 0; n <= steps; n++) {
+        var a = (n / steps) * Math.PI * 2;
+        var local = shellPoint(shell, a);
+        var point = project(local.x, local.y, local.z, cx, cy);
+        if (n === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      }
+      ctx.closePath();
+      ctx.save();
+      ctx.strokeStyle = 'rgba(205,218,235,' + Math.max(0.16, 0.34 - shell.index * 0.02).toFixed(3) + ')';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+    function drawFrame(now) {
+      if (document.hidden || !isInView ||
+          (!miniMode && modal && !modal.classList.contains('open')) ||
+          (miniMode && modal && modal.classList.contains('open'))) {
+        window[frameKey] = 0;
+        return;
+      }
+      var rectWidth = scene.clientWidth || width;
+      if (Math.abs(rectWidth - width) > 1) resizeCanvas();
+      ctx.clearRect(0, 0, width, height);
+      var cx = width / 2, cy = height / 2;
+      var elapsed = now - startTime;
+      var halo = ctx.createRadialGradient(cx, cy, 4, cx, cy, width * 0.46);
+      halo.addColorStop(0, 'rgba(255,190,96,.11)');
+      halo.addColorStop(0.55, 'rgba(66,145,210,.055)');
+      halo.addColorStop(1, 'rgba(20,40,65,0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, width, height);
+      shellData.forEach(function(shell) {
+        drawOrbit(shell, cx, cy);
+      });
+      var particles = [];
+      shellData.forEach(function(shell) {
+        for (var e = 0; e < shell.count; e++) {
+          var angle = (Math.PI * 2 * e / shell.count) + elapsed * shell.speed;
+          var local = shellPoint(shell, angle);
+          var point = project(local.x, local.y, local.z, cx, cy);
+          particles.push({
+            x: point.x, y: point.y, z: point.z, scale: point.scale,
+            radius: (3.5 + (shell.index % 2) * 0.35) * point.scale
+          });
+        }
+      });
+      particles.sort(function(a, b) { return a.z - b.z; });
+      var backParticles = particles.filter(function(p) { return p.z <= 0; });
+      var frontParticles = particles.filter(function(p) { return p.z > 0; });
+      function drawParticle(p) {
+        var r = Math.max(2.6 * Math.min(1, view), Math.min(6.6 * Math.max(1, view), p.radius));
+        drawSprite(electronSprite, p.x, p.y, r);
+      }
+      backParticles.forEach(drawParticle);
+      var spin = elapsed * 0.00035;
+      var proj = nucleons.map(function(n) {
+        var q = rotatePoint(n.x, n.y, n.z, 0.35, spin);
+        var pr = project(q.x, q.y, q.z, cx, cy);
+        pr.type = n.type;
+        return pr;
+      });
+      proj.sort(function(a, b) { return a.z - b.z; });
+      proj.forEach(function(pr) {
+        var r = nucleonR * pr.scale;
+        drawSprite(pr.type ? neutronSprite : protonSprite, pr.x, pr.y, r);
+        if (pr.z < 0 && nucleusR > 0) {
+          var shade = Math.min(0.38, (-pr.z / nucleusR) * 0.38);
+          ctx.fillStyle = 'rgba(25,6,22,' + shade.toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      frontParticles.forEach(drawParticle);
+      window[frameKey] = requestAnimationFrame(drawFrame);
+    }
+    function pdist() { var k = Object.keys(pts); return Math.hypot(pts[k[0]].x - pts[k[1]].x, pts[k[0]].y - pts[k[1]].y) || 1; }
+    scene.addEventListener('pointerdown', function(ev) {
+      ev.preventDefault();
+      pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+      if (scene.setPointerCapture) scene.setPointerCapture(ev.pointerId);
+      if (Object.keys(pts).length === 2) { pinchD = pdist(); pinchZ = userZoom; }
+    });
+    scene.addEventListener('pointermove', function(ev) {
+      var p = pts[ev.pointerId]; if (!p) return;
+      var ox = p.x, oy = p.y;
+      pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+      if (Object.keys(pts).length >= 2) { if (pinchD) setView(pinchZ * pdist() / pinchD); return; }
+      camY += (ev.clientX - ox) * 0.009;
+      camX = Math.max(-1.25, Math.min(1.25, camX + (ev.clientY - oy) * 0.009));
+    });
+    function endPointer(ev) { delete pts[ev.pointerId]; pinchD = 0; }
+    scene.addEventListener('pointerup', endPointer);
+    scene.addEventListener('pointercancel', endPointer);
+    scene.addEventListener('lostpointercapture', endPointer);
+    scene.addEventListener('wheel', function(ev) { ev.preventDefault(); setView(userZoom * (ev.deltaY < 0 ? 1.12 : 0.89)); }, { passive: false });
+    scene.addEventListener('dblclick', function() { setView(1); });
+    var zoomControls = visual.querySelector('.atom-zoom');
+    if (zoomControls) zoomControls.addEventListener('click', function(ev) {
+      var bt = ev.target.closest('button'); if (!bt) return;
+      setView(bt.dataset.z === 'in' ? userZoom * 1.25 : bt.dataset.z === 'out' ? userZoom / 1.25 : 1);
+    });
+    visual.__atomResizeHandler = resizeCanvas;
+    window.addEventListener('resize', visual.__atomResizeHandler);
+    document.addEventListener('visibilitychange', visibilityHandler);
+    var observer = null;
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(function(entries) {
+        isInView = !!(entries[0] && entries[0].isIntersecting);
+        if (isInView && !document.hidden && !window[frameKey]) {
+          window[frameKey] = requestAnimationFrame(drawFrame);
+        }
+      }, {threshold: 0.01});
+      observer.observe(scene);
+    }
+    visual.__atomCleanup = function() {
+      if (observer) observer.disconnect();
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      if (visual.__atomResizeHandler) {
+        window.removeEventListener('resize', visual.__atomResizeHandler);
+        visual.__atomResizeHandler = null;
+      }
+      if (window[frameKey]) cancelAnimationFrame(window[frameKey]);
+      window[frameKey] = 0;
+    };
+    window[frameKey] = requestAnimationFrame(drawFrame);
+    if (!miniMode) {
+      document.getElementById('shellList').innerHTML = shells.map(function(n, i) {
+        return '<span class="shell-chip"><b>Lớp ' + ('KLMNOPQ'[i]) + '</b>: ' + n + ' e⁻</span>';
+      }).join('');
+      document.getElementById('nucleusInfo').textContent =
+        'Hạt nhân: ' + z + ' proton' +
+        (isotope ? ' · khoảng ' + (Number(isotope) - z) + ' nơtron (đồng vị tham chiếu)' : '') +
+        '. Tổng electron: ' + z + '.';
+    }
+  }
+  function renderDetails(card, openModal) {
+    if (!card) return;
+    var z = Number(card.getAttribute('data-number'));
+    var symbol = card.getAttribute('data-symbol');
+    var name = card.getAttribute('data-name');
+    var catKey = card.getAttribute('data-category') || 'unknown';
+    var category = categoryNames[catKey] || 'Chưa xác định';
+    var title = name + ' (' + symbol + ')';
+    var modalSymbol = document.getElementById('modalSymbol');
+    modalSymbol.className = 'modal-symbol ' + catKey;
+    modalSymbol.textContent = symbol;
+    document.getElementById('modalName').textContent = title;
+    document.getElementById('modalSub').textContent = 'Nguyên tố số ' + z + ' · ' + category;
+    if (openModal) setOpen(modal, true);
+    var row = parseInt(card.style.gridRow, 10);
+    var col = parseInt(card.style.gridColumn, 10);
+    var period = row <= 7 ? row : (row === 8 ? 6 : 7);
+    var groupLabels = {1:'IA', 2:'IIA', 3:'IIIB', 4:'IVB', 5:'VB', 6:'VIB', 7:'VIIB', 8:'VIIIB', 9:'VIIIB', 10:'VIIIB', 11:'IB', 12:'IIB', 13:'IIIA', 14:'IVA', 15:'VA', 16:'VIA', 17:'VIIA', 18:'VIIIA'};
+    var group = row >= 8 ? (row === 8 ? 'Dãy Lantan' : 'Dãy Actini') : 'Nhóm ' + (groupLabels[col] || col);
+    var groupPeriod = group + ' · Chu kỳ ' + period;
+    var f = offline[z] || {};
+    var d = pubchem[z] || {};
+    var mass = d.AtomicMass ? d.AtomicMass + ' u' : (f.mass ? f.mass + ' u' : '');
+    var neutrons = f.isotope ? (Number(f.isotope) - z) + ' (A = ' + f.isotope + ')' : '';
+    /* Khi mở cửa sổ "Xem thêm" thì mô hình nhỏ bị tạm dừng, nên chỉ dựng lại khi đóng cửa sổ */
+    if (openModal) {
+      try { renderAtom(z, symbol, f.isotope); } catch (e) {
+        document.getElementById('atomVisual').textContent = 'Chưa thể dựng mô hình nguyên tử trên trình duyệt này.';
+      }
+    } else {
+      try { renderAtom(z, symbol, f.isotope, 'miniAtomVisual', true); } catch (e) {
+        document.getElementById('miniAtomVisual').textContent = 'Không thể dựng mô hình 3D trên trình duyệt này.';
+      }
+    }
+    propertyGrid.innerHTML = [
+      prop('Số hiệu nguyên tử', z),
+      prop('Khối lượng nguyên tử', mass),
+      prop('Số proton', z),
+      prop('Số electron (nguyên tử trung hòa)', z),
+      prop('Số nơtron (đồng vị tham chiếu)', neutrons),
+      prop('Nhóm / chu kỳ', groupPeriod),
+      prop('Phân loại', category),
+      prop('Cấu hình electron', d.ElectronConfiguration, true),
+      prop('Trạng thái ở nhiệt độ phòng', translateState(d.StandardState)),
+      prop('Độ âm điện (Pauling)', d.Electronegativity),
+      prop('Năng lượng ion hóa đầu tiên', d.IonizationEnergy && d.IonizationEnergy + ' eV'),
+      prop('Ái lực electron', d.ElectronAffinity && d.ElectronAffinity + ' eV'),
+      prop('Bán kính nguyên tử', d.AtomicRadius && d.AtomicRadius + ' pm'),
+      prop('Khối lượng riêng', d.Density && (Number(d.Density) < 0.01 ? Number((Number(d.Density) * 1000).toPrecision(4)) + ' g/L' : d.Density + ' g/cm³')),
+      prop('Nhiệt độ nóng chảy', tempC(d.MeltingPoint)),
+      prop('Nhiệt độ sôi', tempC(d.BoilingPoint)),
+      prop('Số oxi hóa thường gặp', d.OxidationStates),
+      prop('Năm phát hiện', d.YearDiscovered === 'Ancient' ? 'Thời cổ đại' : d.YearDiscovered)
+    ].join('');
+    var tile = document.getElementById('gpTile');
+    tile.className = 'stile ' + catKey;
+    tile.textContent = symbol;
+    document.getElementById('gpName').textContent = title;
+    document.getElementById('gpSub').textContent = 'Số ' + z + ' · ' + category;
+    document.getElementById('gpGrid').innerHTML = [
+      prop('Khối lượng', mass),
+      prop('Số hiệu', z),
+      prop('Số proton', z),
+      prop('Số electron', z),
+      prop('Nhóm / chu kỳ', groupPeriod),
+      prop('Phân loại', category),
+      prop('Số nơtron', neutrons),
+      prop('Cấu hình electron', d.ElectronConfiguration)
+    ].join('');
+    panel.classList.add('has');
+  }
+  var panel = document.getElementById('infoPanel'), wrapEl = document.querySelector('.table-wrap');
+  function pick(card, forceModal) {
+    if (selected === card && !forceModal) return;
+    /* Giữ nguyên vị trí cuộn của bảng khi chọn nguyên tố */
+    var x = wrapEl.scrollLeft, y = wrapEl.scrollTop, px = window.scrollX, py = window.scrollY;
+    function restore() { wrapEl.scrollLeft = x; wrapEl.scrollTop = y; window.scrollTo(px, py); }
+    if (selected) selected.classList.remove('selected');
+    selected = card;
+    card.classList.add('selected');
+    renderDetails(card, !!forceModal);
+    restore();
+    requestAnimationFrame(restore);
+    try { sessionStorage.setItem('pt-last', card.dataset.number); } catch (err) {}
+  }
+  document.querySelector('.periodic').addEventListener('click', function(e) { var c=e.target.closest('.element'); if (c) pick(c); });
+  /* Nhấn đúp vào một nguyên tố để mở ngay cửa sổ Xem thêm */
+  document.querySelector('.periodic').addEventListener('dblclick', function(e) {
+    var c = e.target.closest('.element');
+    if (!c) return;
+    e.preventDefault();
+    pick(c, true);
+  });
+
+  var sq=document.getElementById('sq'), sl=document.getElementById('searchList'), sn=document.getElementById('searchCount'), sf=document.getElementById('searchChips'), cat='all';
+  var els=[].map.call(cards, function(c) {
+    var d=c.dataset; return {c:c, z:Number(d.number), s:d.symbol, n:d.name, k:d.category, nn:normalize(d.name), h:normalize(d.number+' '+d.symbol+' '+d.name+' '+(categoryNames[d.category]||''))};
+  });
+  sf.innerHTML=['all'].concat(Object.keys(categoryNames)).map(function(k) { return '<button type="button" data-k="'+k+'"'+(k==='all'?' class="on"':'')+'>'+(k==='all'?'Tất cả':categoryNames[k])+'</button>'; }).join('');
+  function runSearch() {
+    var q=normalize(sq.value.trim()), out=[];
+    els.forEach(function(e) {
+      if (cat!=='all' && e.k!==cat) return;
+      var r = !q ? 1 : (String(e.z)===q || normalize(e.s)===q) ? 4 : e.nn.indexOf(q)===0 ? 3 : e.h.indexOf(q)>-1 ? 2 : 0;
+      if (r) out.push([r,e]);
+    });
+    out.sort(function(a,b) { return b[0]-a[0] || a[1].z-b[1].z; });
+    sn.textContent = out.length + ' / 118 nguyên tố';
+    sl.innerHTML = out.length ? out.map(function(x) {
+      var e=x[1], m=(offline[e.z]||{}).mass;
+      return '<button type="button" class="srow" data-z="'+e.z+'"><i class="stile '+e.k+'">'+safe(e.s)+'</i><span><b>'+safe(e.n)+'</b><small>Số '+e.z+' · '+safe(categoryNames[e.k]||'')+'</small></span><em>'+(m?m+' u':'')+'</em></button>';
+    }).join('') : '<div class="sp-empty">Không có nguyên tố nào khớp.<br>Thử tên, ký hiệu, số nguyên tử hoặc nhóm như “khí hiếm”.</div>';
+  }
+  function openSearch() { setOpen(sp, true); runSearch(); sq.focus(); sq.select(); }
+  function closeSearch() { setOpen(sp, false); }
+  sq.addEventListener('input', runSearch);
+  sf.addEventListener('click', function(e) {
+    var b=e.target.closest('button'); if (!b) return;
+    cat=b.dataset.k; [].forEach.call(sf.children, function(x) { x.classList.toggle('on', x===b); }); runSearch();
+  });
+  sl.addEventListener('click', function(e) {
+    var b=e.target.closest('.srow'); if (!b) return;
+    closeSearch();
+    pick(els[Number(b.dataset.z)-1].c, true);   /* chọn xong mở thẳng cửa sổ "Xem thêm" */
+  });
+  document.getElementById('openSearch').addEventListener('click', openSearch);
+  document.getElementById('spBack').addEventListener('click', closeSearch);
+  var sv = 0; try { sv = Number(sessionStorage.getItem('pt-last')); } catch (err) {}
+  if (sv >= 1 && sv <= 118) { selected = els[sv - 1].c; selected.classList.add('selected'); renderDetails(selected, false); }
+  document.getElementById('gpOpen').addEventListener('click', function() { if (selected) renderDetails(selected, true); });
+  function closeElementModal() {
+    setOpen(modal, false);
+    if (selected) renderDetails(selected, false);
+  }
+  document.getElementById('modalClose').addEventListener('click', closeElementModal);
+  modal.addEventListener('click', function(event) { if (event.target === modal) closeElementModal(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key==='Escape') { if (modal.classList.contains('open')) closeElementModal(); else closeSearch(); }
+    else if ((e.key==='/' || (e.ctrlKey && e.key==='k')) && document.activeElement!==sq && !modal.classList.contains('open')) { e.preventDefault(); openSearch(); }
+  });
+})();</script>
+
+
+
+</body>
+</html>
+
